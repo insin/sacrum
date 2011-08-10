@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Projects</title>
+  <style type="text/css">
+  .controls { border-top: 2px solid black; padding: .5em; margin-top: .5em; }
+  .link, .controls span { cursor: pointer; color: blue; text-decoration: underline; }
+  thead th { border-bottom: 2px solid black; }
+  tbody th { border-right: 2px solid black; }
+  </style>
+  <script type="text/javascript" src="lib/DOMBuilder-2.1-alpha.js"></script>
+  <script type="text/javascript" src="lib/newforms-0.0.3.js"></script>
+  <script type="text/javascript" src="projects.js"></script>
+  <script type="text/javascript">
+  window.onload = function() {
+    Projects.add(new Project({name: 'Test 1'}))
+    Projects.add(new Project({name: 'Test 2'}))
+    Projects.add(new Project({name: 'Test 3'}))
+    ProjectViews.init()
+  }
+  </script>
+</head>
+<body>
+  <h1>Projects</h1>
+  <div id="projects">
+  </div>
+</body>
+</html>
