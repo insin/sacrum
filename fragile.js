@@ -82,6 +82,10 @@ inherits(Project, Model)
 function Project(attrs) {
   Model.call(this, attrs)
 }
+Project._meta = {
+  name: 'Project'
+, namePlural: 'Projects'
+}
 Project.prototype.toString = function() {
   return this.name
 }
@@ -90,6 +94,10 @@ inherits(Release, Model)
 function Release(attrs) {
   Model.call(this, attrs)
 }
+Release._meta = {
+  name: 'Release'
+, namePlural: 'Releases'
+}
 Release.prototype.toString = function() {
   return this.project + ' - ' + this.name
 }
@@ -97,6 +105,10 @@ Release.prototype.toString = function() {
 inherits(Story, Model)
 function Story(attrs) {
   Model.call(this, attrs)
+}
+Story._meta = {
+  name: 'Story'
+, namePlural: 'Stories'
 }
 extend(Story.prototype, {
   toString: function() {
@@ -120,6 +132,10 @@ inherits(Task, Model)
 function Task(attrs) {
   Model.call(this, attrs)
 }
+Task._meta = {
+  name: 'Task'
+, namePlural: 'Tasks'
+}
 extend(Task.prototype, {
   toString: function() {
     return this.name
@@ -141,6 +157,10 @@ extend(Task.prototype, {
 inherits(User, Model)
 function User(attrs) {
   Model.call(this, attrs)
+}
+User._meta = {
+  name: 'User'
+, namePlural: 'Users'
 }
 User.prototype.toString = function() {
   return this.displayName
@@ -288,7 +308,7 @@ $template('crud:list'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , SPAN({click: $func('events.add')}, 'New Item')
+    , SPAN({click: $func('events.add')}, 'New {{ model.name }}')
     )
   )
 )
@@ -329,7 +349,7 @@ $template('crud:add'
     , $var('form.asTable')
     ))
   , DIV({'class': 'controls'}
-    , INPUT({'type': 'submit', value: 'Add Item', click: $func('events.submit')})
+    , INPUT({'type': 'submit', value: 'Add {{ model.name }}', click: $func('events.submit')})
     , ' or '
     , SPAN({click: $func('events.cancel')}, 'Cancel')
     )
@@ -342,7 +362,7 @@ $template('crud:edit'
     , $var('form.asTable')
     ))
   , DIV({'class': 'controls'}
-    , INPUT({type: 'submit', value: 'Edit Item', click: $func('events.submit')})
+    , INPUT({type: 'submit', value: 'Edit {{ model.name }}', click: $func('events.submit')})
     , ' or '
     , SPAN({click: $func('events.cancel')}, 'Cancel')
     )
@@ -354,7 +374,7 @@ $template({name: 'crud:delete', extend: 'crud:detail'}
   , H2('Confirm Deletion')
   )
 , $block('controls'
-  , INPUT({type: 'submit', value: 'Delete Itemt', click: $func('events.confirmDelete')})
+  , INPUT({type: 'submit', value: 'Delete {{ model.name }}', click: $func('events.confirmDelete')})
   , ' or '
   , SPAN({click: $func('events.cancel')}, 'Cancel')
   )
@@ -722,7 +742,7 @@ Views.prototype.log = function(s) {
 function CrudViews(attrs) {
   Views.call(this, attrs)
 }
-inherits(CrudViews, Views);
+inherits(CrudViews, Views)
 
 /**
  * Creates a new object which extends CrudViews, with the given attributes.
@@ -748,7 +768,7 @@ extend(CrudViews.prototype, {
   render: function(templateName, context, events) {
     extend(context, {
       ns: this.namespace
-    , model: this.model
+    , model: this.storage.model._meta
     })
     Views.prototype.render.call(this, templateName, context, events)
   }
