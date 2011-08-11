@@ -1,28 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Projects</title>
+  <title>Fragile</title>
   <style type="text/css">
-  .controls { border-top: 2px solid black; padding: .5em; margin-top: .5em; }
+  .controls { padding: .5em; margin-top: 1em; }
   .link, .controls span { cursor: pointer; color: blue; text-decoration: underline; }
-  thead th { border-bottom: 2px solid black; }
-  tbody th { border-right: 2px solid black; }
+  table { border-spacing: 0; }
+  th, td { padding: 5px 10px }
+  thead th { border-bottom: 4px solid black; text-align: left; }
+  tbody th { text-align: right; border-bottom: 1px solid gray; vertical-align: top; }
+  tbody td { border-bottom: 1px solid gray; }
+  th { background-color: black; color: white; }
+  ul.errorlist { margin: 0; padding: 0; list-style: none; }
+  ul.errorlist li { margin-bottom: 5px; color: red; font-weight: bold; }
   </style>
   <script type="text/javascript" src="lib/DOMBuilder-2.1-alpha.js"></script>
   <script type="text/javascript" src="lib/newforms-0.0.4-pre.js"></script>
   <script type="text/javascript" src="projects.js"></script>
   <script type="text/javascript">
   window.onload = function() {
-    Projects.add(new Project({name: 'Test 1'}))
-    Projects.add(new Project({name: 'Test 2'}))
-    Projects.add(new Project({name: 'Test 3'}))
-    ProjectViews.init()
+    var p1 = Projects.add(new Project({name: 'Project 1'}))
+      , p2 = Projects.add(new Project({name: 'Project 2'}))
+    Projects.add(new Project({name: 'Project 3'}))
+    var r1 = Releases.add(new Release({project: p1, name: 'Release 1'}))
+    Releases.add(new Release({project: p1, name: 'Release 2'}))
+    Releases.add(new Release({project: p2, name: 'Release 1'}))
+    var u1 = Users.add(new User({displayName: 'Alan'}))
+    Users.add(new User({displayName: 'Bill'}))
+    Users.add(new User({displayName: 'Cal'}))
+    var s1 = Stories.add(new Story(
+        { release: r1
+        , name: 'Story 1'
+        , description: 'Do some things.\n\nThen do other things.'
+        , owner: u1
+        , state: States.DEFINED
+        , planned: 45.0
+        }
+      ))
+    Views.initAll()
   }
   </script>
 </head>
 <body>
-  <h1>Projects</h1>
+  <h1>Fragile</h1>
+
+  <h2>Projects</h2>
   <div id="projects">
+  </div>
+
+  <h2>Releases</h2>
+  <div id="releases">
+  </div>
+
+  <h2>Stories</h2>
+  <div id="stories">
   </div>
 </body>
 </html>
