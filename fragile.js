@@ -288,14 +288,17 @@ $template('crud:list'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , SPAN({click: $func('events.add')}, 'New Project')
+    , SPAN({click: $func('events.add')}, 'New Item')
     )
   )
 )
 
 $template('crud:row'
-, TR({id: '{{ ns }}-{{ project.id }}'}
-  , TD({click: $func('events.select'), 'data-id': '{{ item.id }}', 'class': 'link'}, '{{ item }}')
+, TR({id: '{{ ns }}-{{ item.id }}'}
+  , TD({click: $func('events.select'), 'data-id': '{{ item.id }}', 'class': 'link'}
+    , $block('linkText', '{{ item }}')
+    )
+  , $block('extraCells')
   )
 )
 
@@ -303,9 +306,11 @@ $template('crud:detail'
 , $block('top')
 , $block('detail'
   , TABLE(TBODY(
-      TR(
-        TH('Item')
-      , TD('{{ item }}')
+      $block('detailRows'
+      , TR(
+          TH('Item')
+        , TD('{{ item }}')
+        )
       )
     ))
   )
@@ -357,79 +362,22 @@ $template({name: 'crud:delete', extend: 'crud:detail'}
 
 // ---------------------------------------------------------------- Projects ---
 
-$template('project:list'
-, TABLE(
-    THEAD(TR(
+$template({name: 'projects:list', extend: 'crud:list'}
+, $block('headers'
+  , TH('Project Name')
+  )
+)
+
+$template({name: 'projects:row', extend: 'crud:row'}
+, $block('linkText', '{{ item.name }}')
+)
+
+$template({name: 'projects:detail', extend: 'crud:detail'}
+, $block('detailRows'
+  , TR(
       TH('Project Name')
-    ))
-  , TBODY($for('project in projects'
-    , $include('project:row', {project: $var('project')})
-    ))
-  )
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.add')}, 'New Project')
+    , TD('{{ item.name }}')
     )
-  )
-)
-
-$template('project:row'
-, TR({id: 'project-{{ project.id }}'}
-  , TD({click: $func('events.select'), 'data-id': '{{ project.id }}', 'class': 'link'}, '{{ project.name }}')
-  )
-)
-
-$template('project:detail'
-, $block('top')
-, TABLE(TBODY(
-    TR(
-      TH('Project Name')
-    , TD('{{ project.name }}')
-    )
-  ))
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.edit')}, 'Edit')
-    , ' or '
-    , SPAN({click: $func('events.preDelete')}, 'Delete')
-    )
-  )
-)
-
-$template('project:add'
-, FORM({id: 'addProjectForm', method: 'POST', action: '/projects/add/'}
-  , TABLE(TBODY({id: 'projectFormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({'type': 'submit', value: 'Add Project', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
-    )
-  )
-)
-
-$template('project:edit'
-, FORM({id: 'editProjectForm', method: 'POST', action: '/projects/{{ project.id }}/edit/'}
-  , TABLE(TBODY({id: 'projectFormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({type: 'submit', value: 'Edit Project', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
-    )
-  )
-)
-
-$template({name: 'project:delete', extend: 'project:detail'}
-, $block('top'
-  , H2('Confirm Deletion')
-  )
-, $block('controls'
-  , INPUT({type: 'submit', value: 'Delete Project', click: $func('events.confirmDelete')})
-  , ' or '
-  , SPAN({click: $func('events.cancel')}, 'Cancel')
   )
 )
 
@@ -519,115 +467,60 @@ $template({name: 'release:delete', extend: 'release:detail'}
 
 // ----------------------------------------------------------------- Stories ---
 
-$template('story:list'
-, TABLE(
-    THEAD(TR(
-      TH('Story Name')
-    , TH('Release')
-    , TH('State')
-    , TH('Blocked')
-    , TH('Planned')
-    , TH('Owner')
-    ))
-  , TBODY($for('story in stories'
-    , $include('story:row', {story: $var('story')})
-    ))
-  )
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.add')}, 'New Story')
-    )
+$template({name: 'stories:list', extend: 'crud:list'}
+, $block('headers'
+  , TH('Story Name')
+  , TH('Release')
+  , TH('State')
+  , TH('Blocked')
+  , TH('Planned')
+  , TH('Owner')
   )
 )
 
-$template('story:row'
-, TR({id: 'story-{{ story.id }}'}
-  , TD({click: $func('events.select'), 'data-id': '{{ story.id }}', 'class': 'link'}, '{{ story.name }}')
-  , TD('{{ story.release }}')
-  , TD('{{ story.stateDisplay }}')
-  , TD('{{ story.blockedDisplay }}')
-  , TD('{{ story.planned }}')
-  , TD('{{ story.owner }}')
+$template({name: 'stories:row', extend: 'crud:row'}
+, $block('linkText', '{{ item.name }}')
+, $block('extraCells'
+  , TD('{{ item.release }}')
+  , TD('{{ item.stateDisplay }}')
+  , TD('{{ item.blockedDisplay }}')
+  , TD('{{ item.planned }}')
+  , TD('{{ item.owner }}')
   )
 )
 
-$template('story:detail'
-, $block('top')
-, TABLE(TBODY(
-    TR(
+$template({name: 'stories:detail', extend: 'crud:detail'}
+, $block('detailRows'
+  , TR(
       TH('Story Name')
-    , TD({colSpan: 3}, '{{ story.name }}')
+    , TD({colSpan: 3}, '{{ item.name }}')
     )
   , TR(
       TH('Release')
-    , TD({colSpan: 3}, '{{ story.release }}')
+    , TD({colSpan: 3}, '{{ item.release }}')
     )
   , TR(
       TH('Description')
-    , TD({colSpan: 3}, '{{ story.descriptionDisplay }}')
+    , TD({colSpan: 3}, '{{ item.descriptionDisplay }}')
     )
   , TR(
       TH('Owner')
-    , TD({colSpan: 3}, '{{ story.owner }}')
+    , TD({colSpan: 3}, '{{ item.owner }}')
     )
   , TR(
       TH('State')
-    , TD('{{ story.stateDisplay }}')
+    , TD('{{ item.stateDisplay }}')
     , TH('Blocked')
-    , TD('{{ story.blockedDisplay }}')
+    , TD('{{ item.blockedDisplay }}')
     )
   , TR(
       TH('Planned')
-    , TD({colSpan: 3}, '{{ story.planned }}')
+    , TD({colSpan: 3}, '{{ item.planned }}')
     )
   , TR(
       TH('Notes')
-    , TD({colSpan: 3}, '{{ story.notesDisplay }}')
+    , TD({colSpan: 3}, '{{ item.notesDisplay }}')
     )
-  ))
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.edit')}, 'Edit')
-    , ' or '
-    , SPAN({click: $func('events.preDelete')}, 'Delete')
-    )
-  )
-)
-
-$template('story:add'
-, FORM({id: 'addStoryForm', method: 'POST', action: '/stories/add/'}
-  , TABLE(TBODY({id: 'storyFormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({'type': 'submit', value: 'Add Story', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
-    )
-  )
-)
-
-$template('story:edit'
-, FORM({id: 'editStoryForm', method: 'POST', action: '/stories/{{ story.id }}/edit/'}
-  , TABLE(TBODY({id: 'storyFormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({type: 'submit', value: 'Edit Story', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
-    )
-  )
-)
-
-$template({name: 'story:delete', extend: 'story:detail'}
-, $block('top'
-  , H2('Confirm Deletion')
-  )
-, $block('controls'
-  , INPUT({type: 'submit', value: 'Delete Story', click: $func('events.confirmDelete')})
-  , ' or '
-  , SPAN({click: $func('events.cancel')}, 'Cancel')
   )
 )
 
@@ -805,7 +698,12 @@ Views.initAll = function() {
 Views.prototype.render = function(templateName, context, events) {
   if (events) {
     for (var e in events) {
-      events[e] = bind(events[e], this)
+      if (events[e] == null) {
+        console.warn('Event ' + e + ' for use with ' + templateName + ' is null or undefined.')
+      }
+      else {
+        events[e] = bind(events[e], this)
+      }
     }
     context.events = events
   }
@@ -883,7 +781,7 @@ extend(CrudViews.prototype, {
 , detail: function() {
     this.log('detail')
     this.render([this.namespace + ':detail', 'crud:detail']
-      , { project: this.selectedProject }
+      , { item: this.selectedItem }
       , { edit: this.edit
         , preDelete: this.preDelete
         }
@@ -901,11 +799,11 @@ extend(CrudViews.prototype, {
   }
 
 , createItem: function(e) {
-    this.log('createItemt')
+    this.log('createItem')
     e.preventDefault()
-    var form = ProjectForm({ data: forms.formData(this.namespace + 'Form') })
+    var form = this.form({ data: forms.formData(this.namespace + 'Form') })
     if (form.isValid()) {
-      Projects.add(new Project(form.cleanedData))
+      this.storage.add(new this.storage.model(form.cleanedData))
       this.list()
     }
     else {
@@ -925,7 +823,7 @@ extend(CrudViews.prototype, {
       )
   }
 
-, updateITem: function(e) {
+, updateItem: function(e) {
     this.log('updateItem')
     e.preventDefault()
     var form = this.form({ data: forms.formData(this.namespace + 'Form')
@@ -962,112 +860,12 @@ extend(CrudViews.prototype, {
 
 // ---------------------------------------------------------------- Projects ---
 
-var ProjectViews = Views.create({
+var ProjectViews = CrudViews.create({
   name: 'ProjectViews'
-
-, selectedProject: null
-
-, init: function() {
-    this.log('init')
-    this.el = document.getElementById('projects')
-    this.list()
-  }
-
-, list: function() {
-    this.log('list')
-    this.render('project:list'
-      , { projects: Projects.all() }
-      , { select: this.select
-        , add: this.add
-        }
-      )
-  }
-
-, select: function(e) {
-    this.log('select')
-    var id = e.target.getAttribute('data-id')
-    this.selectedProject = Projects.get(id)
-    this.detail()
-  }
-
-, detail: function() {
-    this.log('detail')
-    this.render('project:detail'
-      , { project: this.selectedProject }
-      , { edit: this.edit
-        , preDelete: this.preDelete
-        }
-      )
-  }
-
-, add: function() {
-    this.log('add')
-    this.render('project:add'
-      , { form: ProjectForm() }
-      , { submit: this.createProject
-        , cancel: this.list
-        }
-      )
-  }
-
-, createProject: function(e) {
-    this.log('createProject')
-    e.preventDefault()
-    var form = ProjectForm({ data: forms.formData('addProjectForm') })
-    if (form.isValid()) {
-      Projects.add(new Project(form.cleanedData))
-      this.list()
-    }
-    else {
-      replace('projectFormBody', form.asTable())
-    }
-  }
-
-, edit: function() {
-    this.log('edit')
-    this.render('project:edit'
-      , { project: this.selectedProject
-        , form: ProjectForm({ initial: this.selectedProject })
-        }
-      , { submit: this.updateProject
-        , cancel: this.detail
-        }
-      )
-  }
-
-, updateProject: function(e) {
-    this.log('updateProject')
-    e.preventDefault()
-    var form = ProjectForm({ data: forms.formData('editProjectForm')
-                           , initial: this.selectedProject
-                           })
-    if (form.isValid()) {
-      extend(this.selectedProject, form.cleanedData)
-      this.selectedProject = null
-      this.list()
-    }
-    else {
-      replace('projectFormBody', form.asTable())
-    }
-  }
-
-, preDelete: function() {
-    this.log('preDelete')
-    this.render('project:delete'
-      , { project: this.selectedProject }
-      , { confirmDelete: this.confirmDelete
-        , cancel: this.detail
-        }
-      )
-  }
-
-, confirmDelete: function(e) {
-    this.log('confirmDelete')
-    e.preventDefault()
-    Projects.delete(this.selectedProject)
-    this.selectedProject = null
-    this.list()
-  }
+, namespace: 'projects'
+, elementId: 'projects'
+, storage: Projects
+, form: ProjectForm
 })
 
 // ---------------------------------------------------------------- Releases ---
@@ -1182,112 +980,12 @@ var ReleaseViews = Views.create({
 
 // ---------------------------------------------------------------- Stories ---
 
-var StoryViews = Views.create({
+var StoryViews = CrudViews.create({
   name: 'StoryViews'
-
-, selectedStory: null
-
-, init: function() {
-    this.log('init')
-    this.el = document.getElementById('stories')
-    this.list()
-  }
-
-, list: function() {
-    this.log('list')
-    this.render('story:list'
-      , { stories: Stories.all() }
-      , { select: this.select
-        , add: this.add
-        }
-      )
-  }
-
-, select: function(e) {
-    this.log('select')
-    var id = e.target.getAttribute('data-id')
-    this.selectedStory = Stories.get(id)
-    this.detail()
-  }
-
-, detail: function() {
-    this.log('detail')
-    this.render('story:detail'
-      , { story: this.selectedStory }
-      , { edit: this.edit
-        , preDelete: this.preDelete
-        }
-      )
-  }
-
-, add: function() {
-    this.log('add')
-    this.render('story:add'
-      , { form: StoryForm() }
-      , { submit: this.createStory
-        , cancel: this.list
-        }
-      )
-  }
-
-, createStory: function(e) {
-    this.log('createStory')
-    e.preventDefault()
-    var form = StoryForm({ data: forms.formData('addStoryForm') })
-    if (form.isValid()) {
-      Stories.add(new Story(form.cleanedData))
-      this.list()
-    }
-    else {
-      replace('storyFormBody', form.asTable())
-    }
-  }
-
-, edit: function() {
-    this.log('edit')
-    this.render('story:edit'
-      , { story: this.selectedStory
-        , form: StoryForm({ initial: this.selectedStory })
-        }
-      , { submit: this.updateStory
-        , cancel: this.detail
-        }
-      )
-  }
-
-, updateStory: function(e) {
-    this.log('updateStory')
-    e.preventDefault()
-    var form = StoryForm({ data: forms.formData('editStoryForm')
-                           , initial: this.selectedStory
-                           })
-    if (form.isValid()) {
-      extend(this.selectedStory, form.cleanedData)
-      this.selectedStory = null
-      this.list()
-    }
-    else {
-      replace('storyFormBody', form.asTable())
-    }
-  }
-
-, preDelete: function() {
-    this.log('preDelete')
-    this.render('story:delete'
-      , { story: this.selectedStory }
-      , { confirmDelete: this.confirmDelete
-        , cancel: this.detail
-        }
-      )
-  }
-
-, confirmDelete: function(e) {
-    this.log('confirmDelete')
-    e.preventDefault()
-    Stories.delete(this.selectedStory)
-    this.selectedStory = null
-    this.list()
-  }
+, namespace: 'stories'
+, elementId: 'stories'
+, storage: Stories
+, form: StoryForm
 })
 
 // ------------------------------------------------------------------- Tasks ---
