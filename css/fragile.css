@@ -1,0 +1,10 @@
+.controls { padding: .5em; margin-top: 1em; }
+.link, .controls span { cursor: pointer; color: blue; text-decoration: underline; }
+table { border-spacing: 0; }
+th, td { padding: 5px 10px }
+thead th { border-bottom: 4px solid black; text-align: left; }
+tbody th { text-align: right; border-bottom: 1px solid gray; vertical-align: top; }
+tbody td { border-bottom: 1px solid gray; }
+th { background-color: black; color: white; }
+ul.errorlist { margin: 0; padding: 0; list-style: none; }
+ul.errorlist li { margin-bottom: 5px; color: red; font-weight: bold; }

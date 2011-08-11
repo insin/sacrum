@@ -2,23 +2,13 @@
 <html>
 <head>
   <title>Fragile</title>
-  <style type="text/css">
-  .controls { padding: .5em; margin-top: 1em; }
-  .link, .controls span { cursor: pointer; color: blue; text-decoration: underline; }
-  table { border-spacing: 0; }
-  th, td { padding: 5px 10px }
-  thead th { border-bottom: 4px solid black; text-align: left; }
-  tbody th { text-align: right; border-bottom: 1px solid gray; vertical-align: top; }
-  tbody td { border-bottom: 1px solid gray; }
-  th { background-color: black; color: white; }
-  ul.errorlist { margin: 0; padding: 0; list-style: none; }
-  ul.errorlist li { margin-bottom: 5px; color: red; font-weight: bold; }
-  </style>
+  <link rel="stylesheet" type="text/css" href="css/fragile.css">
   <script type="text/javascript" src="lib/DOMBuilder-2.1-alpha.js"></script>
   <script type="text/javascript" src="lib/newforms-0.0.4-pre.js"></script>
-  <script type="text/javascript" src="projects.js"></script>
+  <script type="text/javascript" src="fragile.js"></script>
   <script type="text/javascript">
   window.onload = function() {
+    // Add some sample data
     var p1 = Projects.add(new Project({name: 'Project 1'}))
       , p2 = Projects.add(new Project({name: 'Project 2'}))
     Projects.add(new Project({name: 'Project 3'}))
@@ -37,6 +27,7 @@
         , planned: 45.0
         }
       ))
+
     Views.initAll()
   }
   </script>
