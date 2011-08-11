@@ -54,9 +54,7 @@ function extend(dest, src) {
 }
 
 function lineBreaks(s) {
-  if (!s) {
-    return ''
-  }
+  if (!s) return ''
 
   var lines = s.split('\n')
   var display = []
@@ -97,21 +95,45 @@ inherits(Story, Model)
 function Story(attrs) {
   Model.call(this, attrs)
 }
-Story.prototype.toString = function() {
-  return this.name
+extend(Story.prototype, {
+  toString: function() {
+    return this.name
+  }
+, stateDisplay: function() {
+    return forms.util.itemsToObject(STORY_STATE_CHOICES)[this.state]
+  }
+, blockedDisplay: function() {
+    return (this.blocked ? 'Yes' : 'No')
+  }
+, descriptionDisplay: function() {
+    return lineBreaks(this.description)
+  }
+, notesDisplay: function() {
+    return lineBreaks(this.notes)
+  }
+})
+
+inherits(Task, Model)
+function Task(attrs) {
+  Model.call(this, attrs)
 }
-Story.prototype.stateDisplay = function() {
-  return forms.util.itemsToObject(STORY_STATE_CHOICES)[this.state]
-}
-Story.prototype.blockedDisplay = function() {
-  return (this.blocked ? 'Yes' : 'No')
-}
-Story.prototype.descriptionDisplay = function() {
-  return lineBreaks(this.description)
-}
-Story.prototype.notesDisplay = function() {
-  return lineBreaks(this.notes)
-}
+extend(Task.prototype, {
+  toString: function() {
+    return this.name
+  }
+, stateDisplay: function() {
+    return forms.util.itemsToObject(TASK_STATE_CHOICES)[this.state]
+  }
+, blockedDisplay: function() {
+    return (this.blocked ? 'Yes' : 'No')
+  }
+, descriptionDisplay: function() {
+    return lineBreaks(this.description)
+  }
+, notesDisplay: function() {
+    return lineBreaks(this.notes)
+  }
+})
 
 inherits(User, Model)
 function User(attrs) {
@@ -173,6 +195,7 @@ Query.prototype.get = function(id) {
 var Projects = new Storage(Project)
 var Releases = new Storage(Release)
 var Stories = new Storage(Story)
+var Tasks = new Storage(Task)
 var Users = new Storage(User)
 
 // =================================================================== Forms ===
@@ -202,6 +225,12 @@ var STORY_STATE_CHOICES = [
 , [States.COMPLETED,   'Completed']
 ]
 
+var TASK_STATE_CHOICES = [
+  [States.NOT_STARTED, 'Not Started']
+, [States.IN_PROGRESS, 'In Progress']
+, [States.COMPLETED,   'Completed']
+]
+
 var ProjectForm = forms.Form({
   name: forms.CharField({maxLength: 50})
 })
@@ -214,12 +243,25 @@ var ReleaseForm = forms.Form({
 var StoryForm = forms.Form({
   release: forms.ModelChoiceField(Releases.query())
 , name: forms.CharField({maxLength: 255})
-, description: forms.CharField({widget: forms.Textarea})
+, description: forms.CharField({widget: forms.Textarea, required: false})
 , state: forms.ChoiceField({choices: STORY_STATE_CHOICES, default: States.DEFINED})
 , blocked: forms.BooleanField({default: false, required: false})
 , planned: forms.DecimalField({required: false, minValue: 0})
 , owner: forms.ModelChoiceField(Users.query(), {required: false})
 , notes: forms.CharField({required: false, widget: forms.Textarea})
+})
+
+var TaskForm = forms.Form({
+  story: forms.ModelChoiceField(Stories.query())
+, name: forms.CharField({maxLength: 255})
+, description: forms.CharField({widget: forms.Textarea, required: false})
+, state: forms.ChoiceField({choices: TASK_STATE_CHOICES, default: States.NOT_STARTED})
+, blocked: forms.BooleanField({default: false, required: false})
+, estimated: forms.DecimalField({minValue: 0})
+, actual: forms.DecimalField({minValue: 0})
+, todo: forms.DecimalField({minValue: 0})
+, owner: forms.ModelChoiceField(Users.query(), {required: false})
+, notes: forms.CharField({widget: forms.Textarea, required: false})
 })
 
 // =============================================================== Templates ===
@@ -502,6 +544,134 @@ $template({name: 'story:delete', extend: 'story:detail'}
   )
 )
 
+// ------------------------------------------------------------------- Tasks ---
+
+$template('task:list'
+, TABLE(
+    THEAD(TR(
+      TH('Task Name')
+    , TH('Story')
+    , TH('Release')
+    , TH('State')
+    , TH('Blocked')
+    , TH('Est.')
+    , TH('To.')
+    , TH('Act.')
+    , TH('Owner')
+    ))
+  , TBODY($for('task in tasks'
+    , $include('task:row', {task: $var('task')})
+    ))
+  )
+, DIV({'class': 'controls'}
+  , $block('controls'
+    , SPAN({click: $func('events.add')}, 'New Task')
+    )
+  )
+)
+
+$template('task:row'
+, TR({id: 'task-{{ task.id }}'}
+  , TD({click: $func('events.select'), 'data-id': '{{ task.id }}', 'class': 'link'}, '{{ task.name }}')
+  , TD('{{ task.story }}')
+  , TD('{{ task.story.release }}')
+  , TD('{{ task.stateDisplay }}')
+  , TD('{{ task.blockedDisplay }}')
+  , TD('{{ task.estimated }}')
+  , TD('{{ task.todo }}')
+  , TD('{{ task.actual }}')
+  , TD('{{ task.owner }}')
+  )
+)
+
+$template('task:detail'
+, $block('top')
+, TABLE(TBODY(
+    TR(
+      TH('Task Name')
+    , TD({colSpan: 3}, '{{ task.name }}')
+    )
+  , TR(
+      TH('Story')
+    , TD('{{ task.story }}')
+    , TH('Release')
+    , TD('{{ task.story.release }}')
+    )
+  , TR(
+      TH('Description')
+    , TD({colSpan: 3}, '{{ task.descriptionDisplay }}')
+    )
+  , TR(
+      TH('Owner')
+    , TD({colSpan: 3}, '{{ task.owner }}')
+    )
+  , TR(
+      TH('State')
+    , TD('{{ task.stateDisplay }}')
+    , TH('Blocked')
+    , TD('{{ task.blockedDisplay }}')
+    )
+  , TR(
+      TH('Estimated')
+    , TD('{{ task.estimated }}')
+    , TH('Actual')
+    , TD('{{ task.actual }}')
+    )
+  , TR(
+      TH('TODO')
+    , TD({colSpan: 3}, '{{ task.todo }}')
+    )
+  , TR(
+      TH('Notes')
+    , TD({colSpan: 3}, '{{ task.notesDisplay }}')
+    )
+  ))
+, DIV({'class': 'controls'}
+  , $block('controls'
+    , SPAN({click: $func('events.edit')}, 'Edit')
+    , ' or '
+    , SPAN({click: $func('events.preDelete')}, 'Delete')
+    )
+  )
+)
+
+$template('task:add'
+, FORM({id: 'addTaskForm', method: 'POST', action: '/tasks/add/'}
+  , TABLE(TBODY({id: 'taskFormBody'}
+    , $var('form.asTable')
+    ))
+  , DIV({'class': 'controls'}
+    , INPUT({'type': 'submit', value: 'Add Task', click: $func('events.submit')})
+    , ' or '
+    , SPAN({click: $func('events.cancel')}, 'Cancel')
+    )
+  )
+)
+
+$template('task:edit'
+, FORM({id: 'editTaskForm', method: 'POST', action: '/tasks/{{ task.id }}/edit/'}
+  , TABLE(TBODY({id: 'taskFormBody'}
+    , $var('form.asTable')
+    ))
+  , DIV({'class': 'controls'}
+    , INPUT({type: 'submit', value: 'Edit Task', click: $func('events.submit')})
+    , ' or '
+    , SPAN({click: $func('events.cancel')}, 'Cancel')
+    )
+  )
+)
+
+$template({name: 'task:delete', extend: 'task:detail'}
+, $block('top'
+  , H2('Confirm Deletion')
+  )
+, $block('controls'
+  , INPUT({type: 'submit', value: 'Delete Task', click: $func('events.confirmDelete')})
+  , ' or '
+  , SPAN({click: $func('events.cancel')}, 'Cancel')
+  )
+)
+
 }
 
 // =================================================================== Views ===
@@ -555,6 +725,10 @@ Views.prototype.render = function(templateName, context, events) {
   replace(this.el, DOMBuilder.template.renderTemplate(templateName, context))
 }
 
+Views.prototype.log = function(s) {
+  console.log(this.name, s)
+}
+
 // ---------------------------------------------------------------- Projects ---
 
 var ProjectViews = Views.create({
@@ -563,13 +737,13 @@ var ProjectViews = Views.create({
 , selectedProject: null
 
 , init: function() {
-    console.log('ProjectViews.init')
+    this.log('init')
     this.el = document.getElementById('projects')
     this.list()
   }
 
 , list: function() {
-    console.log('ProjectViews.list')
+    this.log('list')
     this.render('project:list'
       , { projects: Projects.all() }
       , { select: this.select
@@ -579,14 +753,14 @@ var ProjectViews = Views.create({
   }
 
 , select: function(e) {
-    console.log('ProjectViews.select')
+    this.log('select')
     var id = e.target.getAttribute('data-id')
     this.selectedProject = Projects.get(id)
     this.detail()
   }
 
 , detail: function() {
-    console.log('ProjectViews.detail')
+    this.log('detail')
     this.render('project:detail'
       , { project: this.selectedProject }
       , { edit: this.edit
@@ -596,7 +770,7 @@ var ProjectViews = Views.create({
   }
 
 , add: function() {
-    console.log('ProjectViews.add')
+    this.log('add')
     this.render('project:add'
       , { form: ProjectForm() }
       , { submit: this.createProject
@@ -606,7 +780,7 @@ var ProjectViews = Views.create({
   }
 
 , createProject: function(e) {
-    console.log('ProjectViews.createProject')
+    this.log('createProject')
     e.preventDefault()
     var form = ProjectForm({ data: forms.formData('addProjectForm') })
     if (form.isValid()) {
@@ -619,7 +793,7 @@ var ProjectViews = Views.create({
   }
 
 , edit: function() {
-    console.log('ProjectViews.edit')
+    this.log('edit')
     this.render('project:edit'
       , { project: this.selectedProject
         , form: ProjectForm({ initial: this.selectedProject })
@@ -631,7 +805,7 @@ var ProjectViews = Views.create({
   }
 
 , updateProject: function(e) {
-    console.log('ProjectViews.updateProject')
+    this.log('updateProject')
     e.preventDefault()
     var form = ProjectForm({ data: forms.formData('editProjectForm')
                            , initial: this.selectedProject
@@ -647,7 +821,7 @@ var ProjectViews = Views.create({
   }
 
 , preDelete: function() {
-    console.log('ProjectViews.preDelete')
+    this.log('preDelete')
     this.render('project:delete'
       , { project: this.selectedProject }
       , { confirmDelete: this.confirmDelete
@@ -657,7 +831,7 @@ var ProjectViews = Views.create({
   }
 
 , confirmDelete: function(e) {
-    console.log('ProjectViews.confirmDelete')
+    this.log('confirmDelete')
     e.preventDefault()
     Projects.delete(this.selectedProject)
     this.selectedProject = null
@@ -673,13 +847,13 @@ var ReleaseViews = Views.create({
 , selectedRelease: null
 
 , init: function() {
-    console.log('ReleaseViews.init')
+    this.log('init')
     this.el = document.getElementById('releases')
     this.list()
   }
 
 , list: function() {
-    console.log('ReleaseViews.list')
+    this.log('list')
     this.render('release:list'
       , { releases: Releases.all() }
       , { select: this.select
@@ -689,14 +863,14 @@ var ReleaseViews = Views.create({
   }
 
 , select: function(e) {
-    console.log('ReleaseViews.select')
+    this.log('select')
     var id = e.target.getAttribute('data-id')
     this.selectedRelease = Releases.get(id)
     this.detail()
   }
 
 , detail: function() {
-    console.log('ReleaseViews.detail')
+    this.log('detail')
     this.render('release:detail'
       , { release: this.selectedRelease }
       , { edit: this.edit
@@ -706,7 +880,7 @@ var ReleaseViews = Views.create({
   }
 
 , add: function() {
-    console.log('ReleaseViews.add')
+    this.log('add')
     this.render('release:add'
       , { form: ReleaseForm() }
       , { submit: this.createRelease
@@ -716,7 +890,7 @@ var ReleaseViews = Views.create({
   }
 
 , createRelease: function(e) {
-    console.log('ReleaseViews.createRelease')
+    this.log('createRelease')
     e.preventDefault()
     var form = ReleaseForm({ data: forms.formData('addReleaseForm') })
     if (form.isValid()) {
@@ -729,7 +903,7 @@ var ReleaseViews = Views.create({
   }
 
 , edit: function() {
-    console.log('ReleaseViews.edit')
+    this.log('edit')
     this.render('release:edit'
       , { release: this.selectedRelease
         , form: ReleaseForm({ initial: this.selectedRelease })
@@ -741,7 +915,7 @@ var ReleaseViews = Views.create({
   }
 
 , updateRelease: function(e) {
-    console.log('ReleaseViews.updateRelease')
+    this.log('updateRelease')
     e.preventDefault()
     var form = ReleaseForm({ data: forms.formData('editReleaseForm')
                            , initial: this.selectedRelease
@@ -757,7 +931,7 @@ var ReleaseViews = Views.create({
   }
 
 , preDelete: function() {
-    console.log('ReleaseViews.preDelete')
+    this.log('preDelete')
     this.render('release:delete'
       , { release: this.selectedRelease }
       , { confirmDelete: this.confirmDelete
@@ -767,7 +941,7 @@ var ReleaseViews = Views.create({
   }
 
 , confirmDelete: function(e) {
-    console.log('ReleaseViews.confirmDelete')
+    this.log('confirmDelete')
     e.preventDefault()
     Releases.delete(this.selectedRelease)
     this.selectedRelease = null
@@ -783,13 +957,13 @@ var StoryViews = Views.create({
 , selectedStory: null
 
 , init: function() {
-    console.log('StoryViews.init')
+    this.log('init')
     this.el = document.getElementById('stories')
     this.list()
   }
 
 , list: function() {
-    console.log('StoryViews.list')
+    this.log('list')
     this.render('story:list'
       , { stories: Stories.all() }
       , { select: this.select
@@ -799,14 +973,14 @@ var StoryViews = Views.create({
   }
 
 , select: function(e) {
-    console.log('StoryViews.select')
+    this.log('select')
     var id = e.target.getAttribute('data-id')
     this.selectedStory = Stories.get(id)
     this.detail()
   }
 
 , detail: function() {
-    console.log('StoryViews.detail')
+    this.log('detail')
     this.render('story:detail'
       , { story: this.selectedStory }
       , { edit: this.edit
@@ -816,7 +990,7 @@ var StoryViews = Views.create({
   }
 
 , add: function() {
-    console.log('StoryViews.add')
+    this.log('add')
     this.render('story:add'
       , { form: StoryForm() }
       , { submit: this.createStory
@@ -826,7 +1000,7 @@ var StoryViews = Views.create({
   }
 
 , createStory: function(e) {
-    console.log('StoryViews.createStory')
+    this.log('createStory')
     e.preventDefault()
     var form = StoryForm({ data: forms.formData('addStoryForm') })
     if (form.isValid()) {
@@ -839,7 +1013,7 @@ var StoryViews = Views.create({
   }
 
 , edit: function() {
-    console.log('StoryViews.edit')
+    this.log('edit')
     this.render('story:edit'
       , { story: this.selectedStory
         , form: StoryForm({ initial: this.selectedStory })
@@ -851,7 +1025,7 @@ var StoryViews = Views.create({
   }
 
 , updateStory: function(e) {
-    console.log('StoryViews.updateStory')
+    this.log('updateStory')
     e.preventDefault()
     var form = StoryForm({ data: forms.formData('editStoryForm')
                            , initial: this.selectedStory
@@ -867,7 +1041,7 @@ var StoryViews = Views.create({
   }
 
 , preDelete: function() {
-    console.log('StoryViews.preDelete')
+    this.log('preDelete')
     this.render('story:delete'
       , { story: this.selectedStory }
       , { confirmDelete: this.confirmDelete
@@ -877,10 +1051,160 @@ var StoryViews = Views.create({
   }
 
 , confirmDelete: function(e) {
-    console.log('StoryViews.confirmDelete')
+    this.log('confirmDelete')
     e.preventDefault()
     Stories.delete(this.selectedStory)
     this.selectedStory = null
     this.list()
   }
 })
+
+// ------------------------------------------------------------------- Tasks ---
+
+var TaskViews = Views.create({
+  name: 'TaskViews'
+
+, selectedTask: null
+
+, init: function() {
+    this.log('init')
+    this.el = document.getElementById('tasks')
+    this.list()
+  }
+
+, list: function() {
+    this.log('list')
+    this.render('task:list'
+      , { tasks: Tasks.all() }
+      , { select: this.select
+        , add: this.add
+        }
+      )
+  }
+
+, select: function(e) {
+    this.log('select')
+    var id = e.target.getAttribute('data-id')
+    this.selectedTask = Tasks.get(id)
+    this.detail()
+  }
+
+, detail: function() {
+    this.log('detail')
+    this.render('task:detail'
+      , { task: this.selectedTask }
+      , { edit: this.edit
+        , preDelete: this.preDelete
+        }
+      )
+  }
+
+, add: function() {
+    this.log('add')
+    this.render('task:add'
+      , { form: TaskForm() }
+      , { submit: this.createTask
+        , cancel: this.list
+        }
+      )
+  }
+
+, createTask: function(e) {
+    this.log('createTask')
+    e.preventDefault()
+    var form = TaskForm({ data: forms.formData('addTaskForm') })
+    if (form.isValid()) {
+      Tasks.add(new Task(form.cleanedData))
+      this.list()
+    }
+    else {
+      replace('taskFormBody', form.asTable())
+    }
+  }
+
+, edit: function() {
+    this.log('edit')
+    this.render('task:edit'
+      , { task: this.selectedTask
+        , form: TaskForm({ initial: this.selectedTask })
+        }
+      , { submit: this.updateTask
+        , cancel: this.detail
+        }
+      )
+  }
+
+, updateTask: function(e) {
+    this.log('updateTask')
+    e.preventDefault()
+    var form = TaskForm({ data: forms.formData('editTaskForm')
+                           , initial: this.selectedTask
+                           })
+    if (form.isValid()) {
+      extend(this.selectedTask, form.cleanedData)
+      this.selectedTask = null
+      this.list()
+    }
+    else {
+      replace('taskFormBody', form.asTable())
+    }
+  }
+
+, preDelete: function() {
+    this.log('preDelete')
+    this.render('task:delete'
+      , { task: this.selectedTask }
+      , { confirmDelete: this.confirmDelete
+        , cancel: this.detail
+        }
+      )
+  }
+
+, confirmDelete: function(e) {
+    this.log('confirmDelete')
+    e.preventDefault()
+    Tasks.delete(this.selectedTask)
+    this.selectedTask = null
+    this.list()
+  }
+})
+
+// TODO Add an AppView to manage display of the different sections
+
+// ============================================================= Sample Data ===
+
+!function() {
+
+var p1 = Projects.add(new Project({name: 'Project 1'}))
+  , p2 = Projects.add(new Project({name: 'Project 2'}))
+Projects.add(new Project({name: 'Project 3'}))
+var r1 = Releases.add(new Release({project: p1, name: 'Release 1'}))
+Releases.add(new Release({project: p1, name: 'Release 2'}))
+Releases.add(new Release({project: p2, name: 'Release 1'}))
+var u1 = Users.add(new User({displayName: 'Alan'}))
+  , u2 = Users.add(new User({displayName: 'Bill'}))
+Users.add(new User({displayName: 'Cal'}))
+var s1 = Stories.add(new Story(
+    { release: r1
+    , name: 'Story 1'
+    , description: 'Do some things.\n\nThen do other things.'
+    , owner: u1
+    , state: States.DEFINED
+    , planned: 45.0
+    }
+  ))
+Tasks.add(new Task(
+    { story: s1
+    , name: 'Task 1'
+    , description: 'Implement things and that.'
+    , owner: u2
+    , state: States.IN_PROGRESS
+    , estimated: 15
+    , todo: 10
+    , actual: 5.5
+    }
+  ))
+
+}()
+
+window.onload = bind(Views.initAll, Views)

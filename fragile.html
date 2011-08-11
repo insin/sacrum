@@ -5,32 +5,7 @@
   <link rel="stylesheet" type="text/css" href="css/fragile.css">
   <script type="text/javascript" src="lib/DOMBuilder-2.1-alpha.js"></script>
   <script type="text/javascript" src="lib/newforms-0.0.4-pre.js"></script>
-  <script type="text/javascript" src="fragile.js"></script>
-  <script type="text/javascript">
-  window.onload = function() {
-    // Add some sample data
-    var p1 = Projects.add(new Project({name: 'Project 1'}))
-      , p2 = Projects.add(new Project({name: 'Project 2'}))
-    Projects.add(new Project({name: 'Project 3'}))
-    var r1 = Releases.add(new Release({project: p1, name: 'Release 1'}))
-    Releases.add(new Release({project: p1, name: 'Release 2'}))
-    Releases.add(new Release({project: p2, name: 'Release 1'}))
-    var u1 = Users.add(new User({displayName: 'Alan'}))
-    Users.add(new User({displayName: 'Bill'}))
-    Users.add(new User({displayName: 'Cal'}))
-    var s1 = Stories.add(new Story(
-        { release: r1
-        , name: 'Story 1'
-        , description: 'Do some things.\n\nThen do other things.'
-        , owner: u1
-        , state: States.DEFINED
-        , planned: 45.0
-        }
-      ))
-
-    Views.initAll()
-  }
-  </script>
+  <script type="text/javascript" src="fragile.js"></script>t>
 </head>
 <body>
   <h1>Fragile</h1>
@@ -45,6 +20,10 @@
 
   <h2>Stories</h2>
   <div id="stories">
+  </div>
+
+  <h2>Tasks</h2>
+  <div id="tasks">
   </div>
 </body>
 </html>
