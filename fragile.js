@@ -53,6 +53,9 @@ function extend(dest, src) {
   return dest
 }
 
+/**
+ * Replaces linebreaks with <br> elements for display.
+ */
 function lineBreaks(s) {
   if (!s) return ''
 
@@ -267,6 +270,90 @@ var TaskForm = forms.Form({
 // =============================================================== Templates ===
 
 with (DOMBuilder.template) {
+
+// ----------------------------------------------------- Crud Base Templates ---
+
+$template('crud:list'
+, $block('itemTable'
+  , TABLE(
+      THEAD(TR(
+        $block('headers'
+        , TH('Item')
+        )
+      ))
+    , TBODY($for('item in items'
+      , $include($var('rowTemplates'), {item: $var('item')})
+      ))
+    )
+  )
+, DIV({'class': 'controls'}
+  , $block('controls'
+    , SPAN({click: $func('events.add')}, 'New Project')
+    )
+  )
+)
+
+$template('crud:row'
+, TR({id: '{{ ns }}-{{ project.id }}'}
+  , TD({click: $func('events.select'), 'data-id': '{{ item.id }}', 'class': 'link'}, '{{ item }}')
+  )
+)
+
+$template('crud:detail'
+, $block('top')
+, $block('detail'
+  , TABLE(TBODY(
+      TR(
+        TH('Item')
+      , TD('{{ item }}')
+      )
+    ))
+  )
+, DIV({'class': 'controls'}
+  , $block('controls'
+    , SPAN({click: $func('events.edit')}, 'Edit')
+    , ' or '
+    , SPAN({click: $func('events.preDelete')}, 'Delete')
+    )
+  )
+)
+
+$template('crud:add'
+, FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/add/'}
+  , TABLE(TBODY({id: '{{ ns }}FormBody'}
+    , $var('form.asTable')
+    ))
+  , DIV({'class': 'controls'}
+    , INPUT({'type': 'submit', value: 'Add Item', click: $func('events.submit')})
+    , ' or '
+    , SPAN({click: $func('events.cancel')}, 'Cancel')
+    )
+  )
+)
+
+$template('crud:edit'
+, FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/{{ item.id }}/edit/'}
+  , TABLE(TBODY({id: '{{ ns }}FormBody'}
+    , $var('form.asTable')
+    ))
+  , DIV({'class': 'controls'}
+    , INPUT({type: 'submit', value: 'Edit Item', click: $func('events.submit')})
+    , ' or '
+    , SPAN({click: $func('events.cancel')}, 'Cancel')
+    )
+  )
+)
+
+$template({name: 'crud:delete', extend: 'crud:detail'}
+, $block('top'
+  , H2('Confirm Deletion')
+  )
+, $block('controls'
+  , INPUT({type: 'submit', value: 'Delete Itemt', click: $func('events.confirmDelete')})
+  , ' or '
+  , SPAN({click: $func('events.cancel')}, 'Cancel')
+  )
+)
 
 // ---------------------------------------------------------------- Projects ---
 
@@ -728,6 +815,150 @@ Views.prototype.render = function(templateName, context, events) {
 Views.prototype.log = function(s) {
   console.log(this.name, s)
 }
+
+// --------------------------------------------------------------- CrudViews ---
+
+/**
+ * Views which do some of the repetitive work for basic CRUD functionality.
+ */
+function CrudViews(attrs) {
+  Views.call(this, attrs)
+}
+inherits(CrudViews, Views);
+
+/**
+ * Creates a new object which extends CrudViews, with the given attributes.
+ */
+CrudViews.create = function(attrs) {
+  console.log('CrudViews.create', attrs.name)
+  var F = function(attrs) {
+    CrudViews.call(this, attrs)
+  }
+  inherits(F, CrudViews)
+  var views = new F(attrs)
+  // Push the new views to the base Views constructor so they will have their
+  // init method called by Views.initAll.
+  Views.created.push(views)
+  return views
+}
+
+extend(CrudViews.prototype, {
+  /**
+   * Overrides render to pass in template variables which are required for CRUD
+   * templates.
+   */
+  render: function(templateName, context, events) {
+    extend(context, {
+      ns: this.namespace
+    , model: this.model
+    })
+    Views.prototype.render.call(this, templateName, context, events)
+  }
+
+, init: function() {
+    this.log('init')
+    this.el = document.getElementById(this.elementId)
+    this.list()
+  }
+
+, list: function() {
+    this.log('list')
+    this.render([this.namespace + ':list', 'crud:list']
+      , { items: this.storage.all()
+        , rowTemplates: [this.namespace + ':row', 'crud:row']
+        }
+      , { select: this.select
+        , add: this.add
+        }
+      )
+  }
+
+, select: function(e) {
+    this.log('select')
+    var id = e.target.getAttribute('data-id')
+    this.selectedItem = this.storage.get(id)
+    this.detail()
+  }
+
+, detail: function() {
+    this.log('detail')
+    this.render([this.namespace + ':detail', 'crud:detail']
+      , { project: this.selectedProject }
+      , { edit: this.edit
+        , preDelete: this.preDelete
+        }
+      )
+  }
+
+, add: function() {
+    this.log('add')
+    this.render([this.namespace + ':add', 'crud:add']
+      , { form: this.form() }
+      , { submit: this.createItem
+        , cancel: this.list
+        }
+      )
+  }
+
+, createItem: function(e) {
+    this.log('createItemt')
+    e.preventDefault()
+    var form = ProjectForm({ data: forms.formData(this.namespace + 'Form') })
+    if (form.isValid()) {
+      Projects.add(new Project(form.cleanedData))
+      this.list()
+    }
+    else {
+      replace(this.namespace + 'FormBody', form.asTable())
+    }
+  }
+
+, edit: function() {
+    this.log('edit')
+    this.render([this.namespace + ':edit', 'crud:edit']
+      , { item: this.selectedItem
+        , form: this.form({ initial: this.selectedItem })
+        }
+      , { submit: this.updateItem
+        , cancel: this.detail
+        }
+      )
+  }
+
+, updateITem: function(e) {
+    this.log('updateItem')
+    e.preventDefault()
+    var form = this.form({ data: forms.formData(this.namespace + 'Form')
+                         , initial: this.selectedItem
+                         })
+    if (form.isValid()) {
+      extend(this.selectedItem, form.cleanedData)
+      this.selectedItem = null
+      this.list()
+    }
+    else {
+      replace(this.namespace + 'FormBody', form.asTable())
+    }
+  }
+
+, preDelete: function() {
+    this.log('preDelete')
+    this.render([this.namespace + ':delete', 'crud:delete']
+      , { item: this.selectedItem }
+      , { confirmDelete: this.confirmDelete
+        , cancel: this.detail
+        }
+      )
+  }
+
+, confirmDelete: function(e) {
+    this.log('confirmDelete')
+    e.preventDefault()
+    this.storage.delete(this.selectedItem)
+    this.selectedItem = null
+    this.list()
+  }
+})
 
 // ---------------------------------------------------------------- Projects ---
 
