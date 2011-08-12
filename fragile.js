@@ -83,6 +83,27 @@ function Model(attrs) {
   extend(this, attrs)
 }
 
+
+inherits(User, Model)
+function User(attrs) {
+  Model.call(this, attrs)
+}
+User._meta = {
+  name: 'User'
+, namePlural: 'Users'
+}
+extend(User.prototype, {
+  toString: function() {
+    return this.displayName
+  }
+, imageDisplay: function() {
+    if (this.image) {
+      return DOMBuilder.elements.IMG({src: this.image})
+    }
+    return ''
+  }
+})
+
 inherits(Project, Model)
 function Project(attrs) {
   Model.call(this, attrs)
@@ -179,18 +200,6 @@ extend(Task.prototype, {
   }
 })
 
-inherits(User, Model)
-function User(attrs) {
-  Model.call(this, attrs)
-}
-User._meta = {
-  name: 'User'
-, namePlural: 'Users'
-}
-User.prototype.toString = function() {
-  return this.displayName
-}
-
 // ===================================================== Storage / Retrieval ===
 
 function Storage(model) {
@@ -279,6 +288,13 @@ var TASK_STATE_CHOICES = [
 , [States.IN_PROGRESS, 'In Progress']
 , [States.COMPLETED,   'Completed']
 ]
+
+var UserForm = forms.Form({
+  name: forms.CharField({maxLength: 255})
+, email: forms.EmailField()
+, displayName: forms.CharField({maxLength: 50})
+, image: forms.URLField({required: false})
+})
 
 var ProjectForm = forms.Form({
   name: forms.CharField({maxLength: 50})
@@ -418,6 +434,45 @@ $template({name: 'crud:delete', extend: 'crud:detail'}
   , INPUT({type: 'submit', value: 'Delete {{ model.name }}', click: $func('events.confirmDelete')})
   , ' or '
   , SPAN({click: $func('events.cancel')}, 'Cancel')
+  )
+)
+
+// --------------------------------------------------------------Users ----
+
+$template({name: 'users:list', extend: 'crud:list'}
+, $block('headers'
+  , TH('Name')
+  , TH('Email')
+  , TH('Display Name')
+  )
+)
+
+$template({name: 'users:row', extend: 'crud:row'}
+, $block('linkText', '{{ item.name }}')
+, $block('extraCells'
+  , TD('{{ item.email }}')
+  , TD('{{ item.displayName }}')
+  )
+)
+
+$template({name: 'users:detail', extend: 'crud:detail'}
+, $block('detailRows'
+  , TR(
+      TH('Name')
+    , TD('{{ item.name }}')
+    )
+  , TR(
+      TH('Email')
+    , TD('{{ item.email }}')
+    )
+  , TR(
+      TH('Display Name')
+    , TD('{{ item.displayName }}')
+    )
+  , TR(
+      TH('Image')
+    , TD($var('item.imageDisplay'))
+    )
   )
 )
 
@@ -848,6 +903,16 @@ extend(CrudViews.prototype, {
   }
 })
 
+// ---------------------------------------------------------------- Users ---
+
+var UserViews = CrudViews.create({
+  name: 'UserViews'
+, namespace: 'users'
+, elementId: 'users'
+, storage: Users
+, form: UserForm
+})
+
 // ---------------------------------------------------------------- Projects ---
 
 var ProjectViews = CrudViews.create({
@@ -918,9 +983,8 @@ var i1 = Iterations.add(new Iteration(
     }
   ))
   , i2 = Iterations.add(new Iteration({release: r1, name: 'Iteration 2'}))
-var u1 = Users.add(new User({displayName: 'Alan'}))
-  , u2 = Users.add(new User({displayName: 'Bill'}))
-Users.add(new User({displayName: 'Cal'}))
+var u1 = Users.add(new User({name: 'Alan Partridge', email: 'a@a.com', displayName: 'Alan', image: ''}))
+  , u2 = Users.add(new User({name: 'Bill Carr', email: 'b@b.com', displayName: 'Bill', image: ''}))
 var s1 = Stories.add(new Story(
     { iteration: i1
     , name: 'Story 1'
