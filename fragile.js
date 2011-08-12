@@ -565,135 +565,80 @@ $template({name: 'stories:detail', extend: 'crud:detail'}
 
 // ------------------------------------------------------------------- Tasks ---
 
-$template('task:list'
-, TABLE(
-    THEAD(TR(
-      TH('Task Name')
-    , TH('Story')
-    , TH('Release')
-    , TH('Iteration')
-    , TH('State')
-    , TH('Blocked')
-    , TH('Est.')
-    , TH('To.')
-    , TH('Act.')
-    , TH('Owner')
-    ))
-  , TBODY($for('task in tasks'
-    , $include('task:row', {task: $var('task')})
-    ))
-  )
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.add')}, 'New Task')
-    )
+$template({name: 'tasks:list', extend: 'crud:list'}
+, $block('headers'
+  , TH('Task Name')
+  , TH('Story')
+  , TH('Release')
+  , TH('Iteration')
+  , TH('State')
+  , TH('Blocked')
+  , TH('Est.')
+  , TH('To.')
+  , TH('Act.')
+  , TH('Owner')
   )
 )
 
-$template('task:row'
-, TR({id: 'task-{{ task.id }}'}
-  , TD({click: $func('events.select'), 'data-id': '{{ task.id }}', 'class': 'link'}, '{{ task.name }}')
-  , TD('{{ task.story }}')
-  , TD('{{ task.story.iteration.release }}')
-  , TD('{{ task.story.iteration }}')
-  , TD('{{ task.stateDisplay }}')
-  , TD('{{ task.blockedDisplay }}')
-  , TD('{{ task.estimated }}')
-  , TD('{{ task.todo }}')
-  , TD('{{ task.actual }}')
-  , TD('{{ task.owner }}')
+$template({name: 'tasks:row', extend: 'crud:row'}
+, $block('linkText', '{{ item.name }}')
+, $block('extraCells'
+  , TD('{{ item.story }}')
+  , TD('{{ item.story.iteration.release }}')
+  , TD('{{ item.story.iteration }}')
+  , TD('{{ item.stateDisplay }}')
+  , TD('{{ item.blockedDisplay }}')
+  , TD('{{ item.estimated }}')
+  , TD('{{ item.todo }}')
+  , TD('{{ item.actual }}')
+  , TD('{{ item.owner }}')
   )
 )
 
-$template('task:detail'
-, $block('top')
-, TABLE(TBODY(
-    TR(
+$template({name: 'tasks:detail', extend: 'crud:detail'}
+, $block('detailRows'
+  , TR(
       TH('Task Name')
-    , TD({colSpan: 3}, '{{ task.name }}')
+    , TD({colSpan: 3}, '{{ item.name }}')
     )
   , TR(
       TH('Story')
-    , TD({colSpan: 3}, '{{ task.story }}')
+    , TD({colSpan: 3}, '{{ item.story }}')
     )
   , TR(
       TH('Release')
-    , TD('{{ task.story.iteration.release }}')
+    , TD('{{ item.story.iteration.release }}')
     , TH('Iteration')
-    , TD('{{ task.story.iteration }}')
+    , TD('{{ item.story.iteration }}')
     )
   , TR(
       TH('Description')
-    , TD({colSpan: 3}, '{{ task.descriptionDisplay }}')
+    , TD({colSpan: 3}, '{{ item.descriptionDisplay }}')
     )
   , TR(
       TH('Owner')
-    , TD({colSpan: 3}, '{{ task.owner }}')
+    , TD({colSpan: 3}, '{{ item.owner }}')
     )
   , TR(
       TH('State')
-    , TD('{{ task.stateDisplay }}')
+    , TD('{{ item.stateDisplay }}')
     , TH('Blocked')
-    , TD('{{ task.blockedDisplay }}')
+    , TD('{{ item.blockedDisplay }}')
     )
   , TR(
       TH('Estimated')
-    , TD('{{ task.estimated }}')
+    , TD('{{ item.estimated }}')
     , TH('Actual')
-    , TD('{{ task.actual }}')
+    , TD('{{ item.actual }}')
     )
   , TR(
       TH('TODO')
-    , TD({colSpan: 3}, '{{ task.todo }}')
+    , TD({colSpan: 3}, '{{ item.todo }}')
     )
   , TR(
       TH('Notes')
-    , TD({colSpan: 3}, '{{ task.notesDisplay }}')
+    , TD({colSpan: 3}, '{{ item.notesDisplay }}')
     )
-  ))
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.edit')}, 'Edit')
-    , ' or '
-    , SPAN({click: $func('events.preDelete')}, 'Delete')
-    )
-  )
-)
-
-$template('task:add'
-, FORM({id: 'addTaskForm', method: 'POST', action: '/tasks/add/'}
-  , TABLE(TBODY({id: 'taskFormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({'type': 'submit', value: 'Add Task', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
-    )
-  )
-)
-
-$template('task:edit'
-, FORM({id: 'editTaskForm', method: 'POST', action: '/tasks/{{ task.id }}/edit/'}
-  , TABLE(TBODY({id: 'taskFormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({type: 'submit', value: 'Edit Task', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
-    )
-  )
-)
-
-$template({name: 'task:delete', extend: 'task:detail'}
-, $block('top'
-  , H2('Confirm Deletion')
-  )
-, $block('controls'
-  , INPUT({type: 'submit', value: 'Delete Task', click: $func('events.confirmDelete')})
-  , ' or '
-  , SPAN({click: $func('events.cancel')}, 'Cancel')
   )
 )
 
@@ -945,112 +890,12 @@ var StoryViews = CrudViews.create({
 
 // ------------------------------------------------------------------- Tasks ---
 
-var TaskViews = Views.create({
+var TaskViews = CrudViews.create({
   name: 'TaskViews'
-
-, selectedTask: null
-
-, init: function() {
-    this.log('init')
-    this.el = document.getElementById('tasks')
-    this.list()
-  }
-
-, list: function() {
-    this.log('list')
-    this.render('task:list'
-      , { tasks: Tasks.all() }
-      , { select: this.select
-        , add: this.add
-        }
-      )
-  }
-
-, select: function(e) {
-    this.log('select')
-    var id = e.target.getAttribute('data-id')
-    this.selectedTask = Tasks.get(id)
-    this.detail()
-  }
-
-, detail: function() {
-    this.log('detail')
-    this.render('task:detail'
-      , { task: this.selectedTask }
-      , { edit: this.edit
-        , preDelete: this.preDelete
-        }
-      )
-  }
-
-, add: function() {
-    this.log('add')
-    this.render('task:add'
-      , { form: TaskForm() }
-      , { submit: this.createTask
-        , cancel: this.list
-        }
-      )
-  }
-
-, createTask: function(e) {
-    this.log('createTask')
-    e.preventDefault()
-    var form = TaskForm({ data: forms.formData('addTaskForm') })
-    if (form.isValid()) {
-      Tasks.add(new Task(form.cleanedData))
-      this.list()
-    }
-    else {
-      replace('taskFormBody', form.asTable())
-    }
-  }
-
-, edit: function() {
-    this.log('edit')
-    this.render('task:edit'
-      , { task: this.selectedTask
-        , form: TaskForm({ initial: this.selectedTask })
-        }
-      , { submit: this.updateTask
-        , cancel: this.detail
-        }
-      )
-  }
-
-, updateTask: function(e) {
-    this.log('updateTask')
-    e.preventDefault()
-    var form = TaskForm({ data: forms.formData('editTaskForm')
-                           , initial: this.selectedTask
-                           })
-    if (form.isValid()) {
-      extend(this.selectedTask, form.cleanedData)
-      this.selectedTask = null
-      this.list()
-    }
-    else {
-      replace('taskFormBody', form.asTable())
-    }
-  }
-
-, preDelete: function() {
-    this.log('preDelete')
-    this.render('task:delete'
-      , { task: this.selectedTask }
-      , { confirmDelete: this.confirmDelete
-        , cancel: this.detail
-        }
-      )
-  }
-
-, confirmDelete: function(e) {
-    this.log('confirmDelete')
-    e.preventDefault()
-    Tasks.delete(this.selectedTask)
-    this.selectedTask = null
-    this.list()
-  }
+, namespace: 'tasks'
+, elementId: 'tasks'
+, storage: Tasks
+, form: TaskForm
 })
 
 // TODO Add an AppView to manage display of the different sections
