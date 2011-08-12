@@ -72,6 +72,11 @@ function lineBreaks(s) {
   return display
 }
 
+function formatDate(d) {
+  if (!d) return ''
+  return forms.util.time.strftime(d, '%b %d, %Y')
+}
+
 // ================================================================== Models ===
 
 function Model(attrs) {
@@ -101,6 +106,26 @@ Release._meta = {
 Release.prototype.toString = function() {
   return this.project + ' - ' + this.name
 }
+
+inherits(Iteration, Model)
+function Iteration(attrs) {
+  Model.call(this, attrs)
+}
+Iteration._meta = {
+  name: 'Iteration'
+, namePlural: 'Iterations'
+}
+extend(Iteration.prototype, {
+  toString: function() {
+    return this.name
+  }
+, startDateDisplay: function() {
+    return formatDate(this.startDate)
+  }
+, endDateDisplay: function() {
+    return formatDate(this.endDate)
+  }
+})
 
 inherits(Story, Model)
 function Story(attrs) {
@@ -216,10 +241,11 @@ Query.prototype.get = function(id) {
 }
 
 var Projects = new Storage(Project)
-var Releases = new Storage(Release)
-var Stories = new Storage(Story)
-var Tasks = new Storage(Task)
-var Users = new Storage(User)
+  , Releases = new Storage(Release)
+  , Iterations = new Storage(Iteration)
+  , Stories = new Storage(Story)
+  , Tasks = new Storage(Task)
+  , Users = new Storage(User)
 
 // =================================================================== Forms ===
 
@@ -263,8 +289,23 @@ var ReleaseForm = forms.Form({
 , name: forms.CharField({maxLength: 50})
 })
 
-var StoryForm = forms.Form({
+var IterationForm = forms.Form({
   release: forms.ModelChoiceField(Releases.query())
+, name: forms.CharField({maxLength: 50})
+, startDate: forms.DateField({required: false})
+, endDate: forms.DateField({required: false})
+
+, clean: function() {
+    if (this.cleanedData.startDate && this.cleanedData.endDate &&
+        this.cleanedData.startDate > this.cleanedData.endDate) {
+      throw new forms.ValidationError('End Date cannot be prior to Start Date.')
+    }
+    return this.cleanedData
+  }
+})
+
+var StoryForm = forms.Form({
+  iteration: forms.ModelChoiceField(Iterations.query())
 , name: forms.CharField({maxLength: 255})
 , description: forms.CharField({widget: forms.Textarea, required: false})
 , state: forms.ChoiceField({choices: STORY_STATE_CHOICES, default: States.DEFINED})
@@ -403,85 +444,63 @@ $template({name: 'projects:detail', extend: 'crud:detail'}
 
 // ---------------------------------------------------------------- Releases ---
 
-$template('release:list'
-, TABLE(
-    THEAD(TR(
-      TH('Release Name')
-    , TH('Project')
-    ))
-  , TBODY($for('release in releases'
-    , $include('release:row', {release: $var('release')})
-    ))
-  )
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.add')}, 'New Release')
-    )
+$template({name: 'releases:list', extend: 'crud:list'}
+, $block('headers'
+  , TH('Release Name')
+  , TH('Project')
   )
 )
 
-$template('release:row'
-, TR({id: 'release-{{ release.id }}'}
-  , TD({click: $func('events.select'), 'data-id': '{{ release.id }}', 'class': 'link'}, '{{ release.name }}')
-  , TD('{{ release.project.name }}')
+$template({name: 'releases:row', extend: 'crud:row'}
+, $block('linkText', '{{ item.name }}')
+, $block('extraCells'
+  , TD('{{ item.project }}')
   )
 )
 
-$template('release:detail'
-, $block('top')
-, TABLE(TBODY(
-    TR(
+$template({name: 'releases:detail', extend: 'crud:detail'}
+, $block('detailRows'
+  , TR(
       TH('Release Name')
-    , TD('{{ release.name }}')
+    , TD('{{ item.name }}')
     )
   , TR(
       TH('Project')
-    , TD('{{ release.project.name }}')
-    )
-  ))
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.edit')}, 'Edit')
-    , ' or '
-    , SPAN({click: $func('events.preDelete')}, 'Delete')
+    , TD('{{ item.project }}')
     )
   )
 )
 
-$template('release:add'
-, FORM({id: 'addReleaseForm', method: 'POST', action: '/releases/add/'}
-  , TABLE(TBODY({id: 'releaseFormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({'type': 'submit', value: 'Add Release', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
-    )
+// --------------------------------------------------------------Iterations ----
+
+$template({name: 'iterations:list', extend: 'crud:list'}
+, $block('headers'
+  , TH('Iteration Name')
+  , TH('Start Date')
+  , TH('End Date')
   )
 )
 
-$template('release:edit'
-, FORM({id: 'editReleaseForm', method: 'POST', action: '/releases/{{ release.id }}/edit/'}
-  , TABLE(TBODY({id: 'releaseFormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({type: 'submit', value: 'Edit Release', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
-    )
+$template({name: 'iterations:row', extend: 'crud:row'}
+, $block('linkText', '{{ item.name }}')
+, $block('extraCells'
+  , TD('{{ item.startDateDisplay }}')
+  , TD('{{ item.endDateDisplay }}')
   )
 )
 
-$template({name: 'release:delete', extend: 'release:detail'}
-, $block('top'
-  , H2('Confirm Deletion')
-  )
-, $block('controls'
-  , INPUT({type: 'submit', value: 'Delete Release', click: $func('events.confirmDelete')})
-  , ' or '
-  , SPAN({click: $func('events.cancel')}, 'Cancel')
+$template({name: 'iterations:detail', extend: 'crud:detail'}
+, $block('detailRows'
+  , TR(
+      TH('Iteration Name')
+    , TD({colSpan: 3}, '{{ item.name }}')
+    )
+  , TR(
+      TH('Start Date')
+    , TD('{{ item.startDateDisplay }}')
+    , TH('End Date')
+    , TD('{{ item.endDateDisplay }}')
+    )
   )
 )
 
@@ -490,7 +509,7 @@ $template({name: 'release:delete', extend: 'release:detail'}
 $template({name: 'stories:list', extend: 'crud:list'}
 , $block('headers'
   , TH('Story Name')
-  , TH('Release')
+  , TH('Iteration')
   , TH('State')
   , TH('Blocked')
   , TH('Planned')
@@ -501,7 +520,7 @@ $template({name: 'stories:list', extend: 'crud:list'}
 $template({name: 'stories:row', extend: 'crud:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
-  , TD('{{ item.release }}')
+  , TD('{{ item.iteration }}')
   , TD('{{ item.stateDisplay }}')
   , TD('{{ item.blockedDisplay }}')
   , TD('{{ item.planned }}')
@@ -516,8 +535,8 @@ $template({name: 'stories:detail', extend: 'crud:detail'}
     , TD({colSpan: 3}, '{{ item.name }}')
     )
   , TR(
-      TH('Release')
-    , TD({colSpan: 3}, '{{ item.release }}')
+      TH('Iteration')
+    , TD({colSpan: 3}, '{{ item.iteration }}')
     )
   , TR(
       TH('Description')
@@ -552,6 +571,7 @@ $template('task:list'
       TH('Task Name')
     , TH('Story')
     , TH('Release')
+    , TH('Iteration')
     , TH('State')
     , TH('Blocked')
     , TH('Est.')
@@ -574,7 +594,8 @@ $template('task:row'
 , TR({id: 'task-{{ task.id }}'}
   , TD({click: $func('events.select'), 'data-id': '{{ task.id }}', 'class': 'link'}, '{{ task.name }}')
   , TD('{{ task.story }}')
-  , TD('{{ task.story.release }}')
+  , TD('{{ task.story.iteration.release }}')
+  , TD('{{ task.story.iteration }}')
   , TD('{{ task.stateDisplay }}')
   , TD('{{ task.blockedDisplay }}')
   , TD('{{ task.estimated }}')
@@ -593,9 +614,13 @@ $template('task:detail'
     )
   , TR(
       TH('Story')
-    , TD('{{ task.story }}')
-    , TH('Release')
-    , TD('{{ task.story.release }}')
+    , TD({colSpan: 3}, '{{ task.story }}')
+    )
+  , TR(
+      TH('Release')
+    , TD('{{ task.story.iteration.release }}')
+    , TH('Iteration')
+    , TD('{{ task.story.iteration }}')
     )
   , TR(
       TH('Description')
@@ -890,112 +915,22 @@ var ProjectViews = CrudViews.create({
 
 // ---------------------------------------------------------------- Releases ---
 
-var ReleaseViews = Views.create({
+var ReleaseViews = CrudViews.create({
   name: 'ReleaseViews'
+, namespace: 'releases'
+, elementId: 'releases'
+, storage: Releases
+, form: ReleaseForm
+})
 
-, selectedRelease: null
+// -------------------------------------------------------------- Iterations ---
 
-, init: function() {
-    this.log('init')
-    this.el = document.getElementById('releases')
-    this.list()
-  }
-
-, list: function() {
-    this.log('list')
-    this.render('release:list'
-      , { releases: Releases.all() }
-      , { select: this.select
-        , add: this.add
-        }
-      )
-  }
-
-, select: function(e) {
-    this.log('select')
-    var id = e.target.getAttribute('data-id')
-    this.selectedRelease = Releases.get(id)
-    this.detail()
-  }
-
-, detail: function() {
-    this.log('detail')
-    this.render('release:detail'
-      , { release: this.selectedRelease }
-      , { edit: this.edit
-        , preDelete: this.preDelete
-        }
-      )
-  }
-
-, add: function() {
-    this.log('add')
-    this.render('release:add'
-      , { form: ReleaseForm() }
-      , { submit: this.createRelease
-        , cancel: this.list
-        }
-      )
-  }
-
-, createRelease: function(e) {
-    this.log('createRelease')
-    e.preventDefault()
-    var form = ReleaseForm({ data: forms.formData('addReleaseForm') })
-    if (form.isValid()) {
-      Releases.add(new Release(form.cleanedData))
-      this.list()
-    }
-    else {
-      replace('releaseFormBody', form.asTable())
-    }
-  }
-
-, edit: function() {
-    this.log('edit')
-    this.render('release:edit'
-      , { release: this.selectedRelease
-        , form: ReleaseForm({ initial: this.selectedRelease })
-        }
-      , { submit: this.updateRelease
-        , cancel: this.detail
-        }
-      )
-  }
-
-, updateRelease: function(e) {
-    this.log('updateRelease')
-    e.preventDefault()
-    var form = ReleaseForm({ data: forms.formData('editReleaseForm')
-                           , initial: this.selectedRelease
-                           })
-    if (form.isValid()) {
-      extend(this.selectedRelease, form.cleanedData)
-      this.selectedRelease = null
-      this.list()
-    }
-    else {
-      replace('releaseFormBody', form.asTable())
-    }
-  }
-
-, preDelete: function() {
-    this.log('preDelete')
-    this.render('release:delete'
-      , { release: this.selectedRelease }
-      , { confirmDelete: this.confirmDelete
-        , cancel: this.detail
-        }
-      )
-  }
-
-, confirmDelete: function(e) {
-    this.log('confirmDelete')
-    e.preventDefault()
-    Releases.delete(this.selectedRelease)
-    this.selectedRelease = null
-    this.list()
-  }
+var IterationViews = CrudViews.create({
+  name: 'IterationViews'
+, namespace: 'iterations'
+, elementId: 'iterations'
+, storage: Iterations
+, form: IterationForm
 })
 
 // ---------------------------------------------------------------- Stories ---
@@ -1130,11 +1065,19 @@ Projects.add(new Project({name: 'Project 3'}))
 var r1 = Releases.add(new Release({project: p1, name: 'Release 1'}))
 Releases.add(new Release({project: p1, name: 'Release 2'}))
 Releases.add(new Release({project: p2, name: 'Release 1'}))
+var i1 = Iterations.add(new Iteration(
+    { release: r1
+    , name: 'Iteration 1'
+    , startDate: new Date(2011, 7, 1)
+    , endDate: new Date(2011, 7, 28)
+    }
+  ))
+  , i2 = Iterations.add(new Iteration({release: r1, name: 'Iteration 2'}))
 var u1 = Users.add(new User({displayName: 'Alan'}))
   , u2 = Users.add(new User({displayName: 'Bill'}))
 Users.add(new User({displayName: 'Cal'}))
 var s1 = Stories.add(new Story(
-    { release: r1
+    { iteration: i1
     , name: 'Story 1'
     , description: 'Do some things.\n\nThen do other things.'
     , owner: u1
