@@ -349,6 +349,10 @@ with (DOMBuilder.template) {
 
 // ----------------------------------------------------- Crud Base Templates ---
 
+function buttonSpacer(text) {
+  return DOMBuilder.template.SPAN({'class': 'spacer'}, text || ' or ')
+}
+
 $template('crud:list'
 , $block('itemTable'
   , TABLE(
@@ -364,7 +368,7 @@ $template('crud:list'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , SPAN({click: $func('events.add')}, 'New {{ model.name }}')
+    , SPAN({click: $func('events.add'), 'class': 'button add'}, 'Add {{ model.name }}')
     )
   )
 )
@@ -392,9 +396,9 @@ $template('crud:detail'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , SPAN({click: $func('events.edit')}, 'Edit')
-    , ' or '
-    , SPAN({click: $func('events.preDelete')}, 'Delete')
+    , SPAN({click: $func('events.edit'), 'class': 'button edit'}, 'Edit')
+    , buttonSpacer()
+    , SPAN({click: $func('events.preDelete'), 'class': 'button delete'}, 'Delete')
     )
   )
 )
@@ -405,9 +409,9 @@ $template('crud:add'
     , $var('form.asTable')
     ))
   , DIV({'class': 'controls'}
-    , INPUT({'type': 'submit', value: 'Add {{ model.name }}', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
+    , INPUT({'type': 'submit', value: 'Add {{ model.name }}', click: $func('events.submit'), 'class': 'add'})
+    , buttonSpacer()
+    , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
     )
   )
 )
@@ -418,9 +422,9 @@ $template('crud:edit'
     , $var('form.asTable')
     ))
   , DIV({'class': 'controls'}
-    , INPUT({type: 'submit', value: 'Edit {{ model.name }}', click: $func('events.submit')})
-    , ' or '
-    , SPAN({click: $func('events.cancel')}, 'Cancel')
+    , INPUT({type: 'submit', value: 'Edit {{ model.name }}', click: $func('events.submit'), 'class': 'edit'})
+    , buttonSpacer()
+    , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
     )
   )
 )
@@ -430,9 +434,9 @@ $template({name: 'crud:delete', extend: 'crud:detail'}
   , H2('Confirm Deletion')
   )
 , $block('controls'
-  , INPUT({type: 'submit', value: 'Delete {{ model.name }}', click: $func('events.confirmDelete')})
-  , ' or '
-  , SPAN({click: $func('events.cancel')}, 'Cancel')
+  , INPUT({type: 'submit', value: 'Delete {{ model.name }}', click: $func('events.confirmDelete'), 'class': 'delete'})
+  , buttonSpacer()
+  , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
   )
 )
 
@@ -442,7 +446,7 @@ $template({name: 'users:list', extend: 'crud:list'}
 , $block('headers'
   , TH('Name')
   , TH('Email')
-  , TH('Display Name')
+  , TH('Display name')
   )
 )
 
@@ -465,7 +469,7 @@ $template({name: 'users:detail', extend: 'crud:detail'}
     , TD('{{ item.email }}')
     )
   , TR(
-      TH('Display Name')
+      TH('Display name')
     , TD('{{ item.displayName }}')
     )
   , TR(
@@ -479,7 +483,7 @@ $template({name: 'users:detail', extend: 'crud:detail'}
 
 $template({name: 'projects:list', extend: 'crud:list'}
 , $block('headers'
-  , TH('Project Name')
+  , TH('Project name')
   )
 )
 
@@ -490,7 +494,7 @@ $template({name: 'projects:row', extend: 'crud:row'}
 $template({name: 'projects:detail', extend: 'crud:detail'}
 , $block('detailRows'
   , TR(
-      TH('Project Name')
+      TH('Project name')
     , TD('{{ item.name }}')
     )
   )
@@ -500,7 +504,7 @@ $template({name: 'projects:detail', extend: 'crud:detail'}
 
 $template({name: 'releases:list', extend: 'crud:list'}
 , $block('headers'
-  , TH('Release Name')
+  , TH('Release name')
   , TH('Project')
   )
 )
@@ -529,9 +533,9 @@ $template({name: 'releases:detail', extend: 'crud:detail'}
 
 $template({name: 'iterations:list', extend: 'crud:list'}
 , $block('headers'
-  , TH('Iteration Name')
-  , TH('Start Date')
-  , TH('End Date')
+  , TH('Iteration name')
+  , TH('Start date')
+  , TH('End date')
   )
 )
 
@@ -550,9 +554,9 @@ $template({name: 'iterations:detail', extend: 'crud:detail'}
     , TD({colSpan: 3}, '{{ item.name }}')
     )
   , TR(
-      TH('Start Date')
+      TH('Start date')
     , TD('{{ item.startDateDisplay }}')
-    , TH('End Date')
+    , TH('End date')
     , TD('{{ item.endDateDisplay }}')
     )
   )
@@ -562,7 +566,7 @@ $template({name: 'iterations:detail', extend: 'crud:detail'}
 
 $template({name: 'stories:list', extend: 'crud:list'}
 , $block('headers'
-  , TH('Story Name')
+  , TH('Story name')
   , TH('Iteration')
   , TH('State')
   , TH('Blocked')
@@ -585,7 +589,7 @@ $template({name: 'stories:row', extend: 'crud:row'}
 $template({name: 'stories:detail', extend: 'crud:detail'}
 , $block('detailRows'
   , TR(
-      TH('Story Name')
+      TH('Story name')
     , TD({colSpan: 3}, '{{ item.name }}')
     )
   , TR(
@@ -621,7 +625,7 @@ $template({name: 'stories:detail', extend: 'crud:detail'}
 
 $template({name: 'tasks:list', extend: 'crud:list'}
 , $block('headers'
-  , TH('Task Name')
+  , TH('Task name')
   , TH('Story')
   , TH('Release')
   , TH('Iteration')
@@ -652,7 +656,7 @@ $template({name: 'tasks:row', extend: 'crud:row'}
 $template({name: 'tasks:detail', extend: 'crud:detail'}
 , $block('detailRows'
   , TR(
-      TH('Task Name')
+      TH('Task name')
     , TD({colSpan: 3}, '{{ item.name }}')
     )
   , TR(

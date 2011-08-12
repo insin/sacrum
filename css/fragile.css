@@ -1,9 +1,17 @@
+body { font-family: arial, helvetica, sans-serif; }
 h2 { padding-bottom: .5em; border-bottom: 1px solid black; }
 .controls { padding: .5em 0; margin-top: 1em; }
 .link { cursor: pointer; color: blue; text-decoration: underline; }
-.controls span, .controls input[type=submit] { cursor: pointer; color: blue; font-weight: bold; padding: .3em .6em; border: 1px solid black; border-radius: .5em; background-color: white;}
-.controls span:hover, .controls input[type=submit]:hover { background-color: black; color: yellow; }
-.controls span:active, .controls input[type=submit]:active { background-color: black; color: #0f0; }
+.controls .button, .controls input { cursor: pointer; color: blue; font-weight: bold; padding: .3em .6em; border: 1px solid black; border-radius: .5em; background-color: white; font-size: 1em; }
+/* Force same font for submit buttons */
+.controls input { font-family: arial, helvetica, sans-serif; }
+/* Adjust faux-button input heights to match submit buttons */
+.controls .button { padding-top: .4em; padding-bottom: .4em; }
+.controls .button:hover, .controls input:hover { background-color: black; color: yellow; }
+.controls .button:active, .controls input:active { background-color: black; color: #0f0; }
+.controls .add:hover { color: white; background-color: green; }
+.controls .delete:hover { color: white; background-color: red; }
+.controls .spacer { margin-left: .3em; margin-right: .3em; }
 table { border-spacing: 0; }
 th, td { padding: 5px 10px }
 thead th { border-bottom: 4px solid black; text-align: left; }
