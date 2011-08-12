@@ -83,7 +83,6 @@ function Model(attrs) {
   extend(this, attrs)
 }
 
-
 inherits(User, Model)
 function User(attrs) {
   Model.call(this, attrs)
@@ -230,7 +229,7 @@ Storage.prototype.get = function(id) {
   return this._store[id]
 }
 
-Storage.prototype.delete = function(project) {
+Storage.prototype.remove = function(project) {
   delete this._store[project.id]
 }
 
@@ -324,8 +323,8 @@ var StoryForm = forms.Form({
   iteration: forms.ModelChoiceField(Iterations.query())
 , name: forms.CharField({maxLength: 255})
 , description: forms.CharField({widget: forms.Textarea, required: false})
-, state: forms.ChoiceField({choices: STORY_STATE_CHOICES, default: States.DEFINED})
-, blocked: forms.BooleanField({default: false, required: false})
+, state: forms.ChoiceField({choices: STORY_STATE_CHOICES, initial: States.DEFINED})
+, blocked: forms.BooleanField({initial: false, required: false})
 , planned: forms.DecimalField({required: false, minValue: 0})
 , owner: forms.ModelChoiceField(Users.query(), {required: false})
 , notes: forms.CharField({required: false, widget: forms.Textarea})
@@ -335,8 +334,8 @@ var TaskForm = forms.Form({
   story: forms.ModelChoiceField(Stories.query())
 , name: forms.CharField({maxLength: 255})
 , description: forms.CharField({widget: forms.Textarea, required: false})
-, state: forms.ChoiceField({choices: TASK_STATE_CHOICES, default: States.NOT_STARTED})
-, blocked: forms.BooleanField({default: false, required: false})
+, state: forms.ChoiceField({choices: TASK_STATE_CHOICES, initial: States.NOT_STARTED})
+, blocked: forms.BooleanField({initial: false, required: false})
 , estimated: forms.DecimalField({minValue: 0})
 , actual: forms.DecimalField({minValue: 0})
 , todo: forms.DecimalField({minValue: 0})
@@ -897,7 +896,7 @@ extend(CrudViews.prototype, {
 , confirmDelete: function(e) {
     this.log('confirmDelete')
     e.preventDefault()
-    this.storage.delete(this.selectedItem)
+    this.storage.remove(this.selectedItem)
     this.selectedItem = null
     this.list()
   }
