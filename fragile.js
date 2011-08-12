@@ -1,59 +1,6 @@
 // =============================================================== Utilities ===
 
 /**
- * Replaces the contents of an element.
- */
-function replace(el, content) {
-  if (typeof el == 'string') {
-    el = document.getElementById(el)
-  }
-  el.innerHTML = ''
-  if (content instanceof Array) {
-    content = DOMBuilder.fragment(content)
-  }
-  el.appendChild(content)
-}
-
-/**
- * Binds a function with a calling context and (optionally) some curried arguments.
- */
-function bind(fn, ctx) {
-  var curried = null
-  if (arguments.length > 2) {
-    curried = Array.prototype.slice.call(arguments, 2)
-  }
-  var f = function() {
-    if (curried) {
-      return fn.apply(ctx, curried.concat(Array.prototype.slice.call(arguments)))
-    }
-    return fn.apply(ctx, arguments)
-  }
-  f.boundTo = ctx
-  return f
-}
-
-/**
- * Inherits another constructor's prototype without having to construct.
- */
-function inherits(child, parent) {
-  var F = function() {}
-  F.prototype = parent.prototype
-  child.prototype = new F()
-  child.prototype.constructor = child
-  return child
-}
-
-/**
- * Copies properties from one object to another.
- */
-function extend(dest, src) {
-  for (var prop in src) {
-    dest[prop] = src[prop]
-  }
-  return dest
-}
-
-/**
  * Replaces linebreaks with <br> elements for display.
  */
 function lineBreaks(s) {
@@ -81,13 +28,6 @@ function formatDate(d) {
 }
 
 // ================================================================== Models ===
-
-/**
- * Base constructor for models - doesn't actually do much yet.
- */
-function Model(attrs) {
-  extend(this, attrs)
-}
 
 inherits(User, Model)
 function User(attrs) {
@@ -207,75 +147,6 @@ extend(Task.prototype, {
 
 // ===================================================== Storage / Retrieval ===
 
-/**
- * Stores and retrieves instances of the given model.
- */
-function Storage(model) {
-  this._store = {}
-  this._idSeed = 1
-  this.model = model
-}
-
-Storage.prototype.query = function() {
-  return new Query(this)
-}
-
-/**
- * Generates a new id for a model instance and stores it.
- */
-Storage.prototype.add = function(instance) {
-  instance.id = this._idSeed++
-  this._store[instance.id] = instance
-  return instance
-}
-
-/**
- * Retrieves all model instances.
- */
-Storage.prototype.all = function() {
-  var a = []
-  for (var id in this._store) {
-    a.push(this._store[id])
-  }
-  return a
-}
-
-/**
- * Retrieves the model instance with the given id, or null if it doesn't exist.
- */
-Storage.prototype.get = function(id) {
-  return this._store[id] || null
-}
-
-/**
- * Removes the given model instance.
- */
-Storage.prototype.remove = function(instance) {
-  delete this._store[instance.id]
-}
-
-/**
- * A representation of a query on a Storage object, which can be used to obtain
- * query results or perform further retrieval.
- *
- * We need an object which has access to query results and a link to the means
- * of looking stuff up to hook up with newforms' ModelChoiceField.
- */
-function Query(storage) {
-  this.storage = storage
-}
-
-/**
- * Fetches query results - for now, always returns all instances in the storage.
- */
-Query.prototype.__iter__ = function() {
-  return this.storage.all()
-}
-
-Query.prototype.get = function(id) {
-  return this.storage.get(id)
-}
-
 var Projects = new Storage(Project)
   , Releases = new Storage(Release)
   , Iterations = new Storage(Iteration)
@@ -284,18 +155,6 @@ var Projects = new Storage(Project)
   , Users = new Storage(User)
 
 // =================================================================== Forms ===
-
-// Let newforms know what our cobbled-together storage and retrieval looks like
-extend(forms.ModelInterface, {
-  throwsIfNotFound: false
-, notFoundValue: null
-, prepareValue: function(instance) {
-    return instance.id
-  }
-, findById: function(modelQuery, id) {
-    return modelQuery.get(id)
-  }
-})
 
 var States = {
   DEFINED: 'D'
@@ -371,106 +230,77 @@ var TaskForm = forms.Form({
 , notes: forms.CharField({widget: forms.Textarea, required: false})
 })
 
+// =================================================================== Views ===
+
+// ------------------------------------------------------------------- Users ---
+
+var UserViews = CrudViews.create({
+  name: 'UserViews'
+, namespace: 'users'
+, elementId: 'users'
+, storage: Users
+, form: UserForm
+})
+
+// ---------------------------------------------------------------- Projects ---
+
+var ProjectViews = CrudViews.create({
+  name: 'ProjectViews'
+, namespace: 'projects'
+, elementId: 'projects'
+, storage: Projects
+, form: ProjectForm
+})
+
+// ---------------------------------------------------------------- Releases ---
+
+var ReleaseViews = CrudViews.create({
+  name: 'ReleaseViews'
+, namespace: 'releases'
+, elementId: 'releases'
+, storage: Releases
+, form: ReleaseForm
+})
+
+// -------------------------------------------------------------- Iterations ---
+
+var IterationViews = CrudViews.create({
+  name: 'IterationViews'
+, namespace: 'iterations'
+, elementId: 'iterations'
+, storage: Iterations
+, form: IterationForm
+})
+
+// ----------------------------------------------------------------- Stories ---
+
+var StoryViews = CrudViews.create({
+  name: 'StoryViews'
+, namespace: 'stories'
+, elementId: 'stories'
+, storage: Stories
+, form: StoryForm
+})
+
+// ------------------------------------------------------------------- Tasks ---
+
+var TaskViews = CrudViews.create({
+  name: 'TaskViews'
+, namespace: 'tasks'
+, elementId: 'tasks'
+, storage: Tasks
+, form: TaskForm
+})
+
+// TODO Add an AppView to manage display of the different sections
+
 // =============================================================== Templates ===
 
 with (DOMBuilder.template) {
 
-// ----------------------------------------------------- Crud Base Templates ---
-
-function buttonSpacer(text) {
-  return DOMBuilder.template.SPAN({'class': 'spacer'}, text || ' or ')
-}
-
-$template('crud:list'
-, $block('itemTable'
-  , TABLE(
-      THEAD(TR(
-        $block('headers'
-        , TH('Item')
-        )
-      ))
-    , TBODY($for('item in items'
-      , $include($var('rowTemplates'), {item: $var('item')})
-      ))
-    )
-  )
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.add'), 'class': 'button'}, 'Add {{ model.name }}')
-    )
-  )
-)
-
-$template('crud:row'
-, TR({id: '{{ ns }}-{{ item.id }}'}
-  , TD({click: $func('events.select'), 'data-id': '{{ item.id }}', 'class': 'link'}
-    , $block('linkText', '{{ item }}')
-    )
-  , $block('extraCells')
-  )
-)
-
-$template('crud:detail'
-, $block('top')
-, $block('detail'
-  , TABLE(TBODY(
-      $block('detailRows'
-      , TR(
-          TH('Item')
-        , TD('{{ item }}')
-        )
-      )
-    ))
-  )
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.edit'), 'class': 'button'}, 'Edit')
-    , buttonSpacer()
-    , SPAN({click: $func('events.preDelete'), 'class': 'button'}, 'Delete')
-    )
-  )
-)
-
-$template('crud:add'
-, FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/add/'}
-  , TABLE(TBODY({id: '{{ ns }}FormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({'type': 'submit', value: 'Add {{ model.name }}', click: $func('events.submit'), 'class': 'add'})
-    , buttonSpacer()
-    , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
-    )
-  )
-)
-
-$template('crud:edit'
-, FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/{{ item.id }}/edit/'}
-  , TABLE(TBODY({id: '{{ ns }}FormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({type: 'submit', value: 'Edit {{ model.name }}', click: $func('events.submit'), 'class': 'edit'})
-    , buttonSpacer()
-    , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
-    )
-  )
-)
-
-$template({name: 'crud:delete', extend: 'crud:detail'}
-, $block('top'
-  , H2('Confirm Deletion')
-  )
-, $block('controls'
-  , INPUT({type: 'submit', value: 'Delete {{ model.name }}', click: $func('events.confirmDelete'), 'class': 'delete'})
-  , buttonSpacer()
-  , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
-  )
-)
-
 // --------------------------------------------------------------Users ----
 
-$template({name: 'users:list', extend: 'crud:list'}
+$template({name: 'users:crud:list', extend: 'crud:list'}
 , $block('headers'
   , TH('Name')
   , TH('Email')
@@ -478,7 +308,7 @@ $template({name: 'users:list', extend: 'crud:list'}
   )
 )
 
-$template({name: 'users:row', extend: 'crud:row'}
+$template({name: 'users:crud:row', extend: 'crud:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.email }}')
@@ -486,7 +316,7 @@ $template({name: 'users:row', extend: 'crud:row'}
   )
 )
 
-$template({name: 'users:detail', extend: 'crud:detail'}
+$template({name: 'users:crud:detail', extend: 'crud:detail'}
 , $block('detailRows'
   , TR(
       TH('Name')
@@ -509,17 +339,17 @@ $template({name: 'users:detail', extend: 'crud:detail'}
 
 // ---------------------------------------------------------------- Projects ---
 
-$template({name: 'projects:list', extend: 'crud:list'}
+$template({name: 'projects:crud:list', extend: 'crud:list'}
 , $block('headers'
   , TH('Project name')
   )
 )
 
-$template({name: 'projects:row', extend: 'crud:row'}
+$template({name: 'projects:crud:row', extend: 'crud:row'}
 , $block('linkText', '{{ item.name }}')
 )
 
-$template({name: 'projects:detail', extend: 'crud:detail'}
+$template({name: 'projects:crud:detail', extend: 'crud:detail'}
 , $block('detailRows'
   , TR(
       TH('Project name')
@@ -530,21 +360,21 @@ $template({name: 'projects:detail', extend: 'crud:detail'}
 
 // ---------------------------------------------------------------- Releases ---
 
-$template({name: 'releases:list', extend: 'crud:list'}
+$template({name: 'releases:crud:list', extend: 'crud:list'}
 , $block('headers'
   , TH('Release name')
   , TH('Project')
   )
 )
 
-$template({name: 'releases:row', extend: 'crud:row'}
+$template({name: 'releases:crud:row', extend: 'crud:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.project }}')
   )
 )
 
-$template({name: 'releases:detail', extend: 'crud:detail'}
+$template({name: 'releases:crud:detail', extend: 'crud:detail'}
 , $block('detailRows'
   , TR(
       TH('Release Name')
@@ -559,7 +389,7 @@ $template({name: 'releases:detail', extend: 'crud:detail'}
 
 // --------------------------------------------------------------Iterations ----
 
-$template({name: 'iterations:list', extend: 'crud:list'}
+$template({name: 'iterations:crud:list', extend: 'crud:list'}
 , $block('headers'
   , TH('Iteration name')
   , TH('Start date')
@@ -567,7 +397,7 @@ $template({name: 'iterations:list', extend: 'crud:list'}
   )
 )
 
-$template({name: 'iterations:row', extend: 'crud:row'}
+$template({name: 'iterations:crud:row', extend: 'crud:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.startDateDisplay }}')
@@ -575,7 +405,7 @@ $template({name: 'iterations:row', extend: 'crud:row'}
   )
 )
 
-$template({name: 'iterations:detail', extend: 'crud:detail'}
+$template({name: 'iterations:crud:detail', extend: 'crud:detail'}
 , $block('detailRows'
   , TR(
       TH('Iteration Name')
@@ -592,7 +422,7 @@ $template({name: 'iterations:detail', extend: 'crud:detail'}
 
 // ----------------------------------------------------------------- Stories ---
 
-$template({name: 'stories:list', extend: 'crud:list'}
+$template({name: 'stories:crud:list', extend: 'crud:list'}
 , $block('headers'
   , TH('Story name')
   , TH('Iteration')
@@ -603,7 +433,7 @@ $template({name: 'stories:list', extend: 'crud:list'}
   )
 )
 
-$template({name: 'stories:row', extend: 'crud:row'}
+$template({name: 'stories:crud:row', extend: 'crud:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.iteration }}')
@@ -614,7 +444,7 @@ $template({name: 'stories:row', extend: 'crud:row'}
   )
 )
 
-$template({name: 'stories:detail', extend: 'crud:detail'}
+$template({name: 'stories:crud:detail', extend: 'crud:detail'}
 , $block('detailRows'
   , TR(
       TH('Story name')
@@ -651,7 +481,7 @@ $template({name: 'stories:detail', extend: 'crud:detail'}
 
 // ------------------------------------------------------------------- Tasks ---
 
-$template({name: 'tasks:list', extend: 'crud:list'}
+$template({name: 'tasks:crud:list', extend: 'crud:list'}
 , $block('headers'
   , TH('Task name')
   , TH('Story')
@@ -666,7 +496,7 @@ $template({name: 'tasks:list', extend: 'crud:list'}
   )
 )
 
-$template({name: 'tasks:row', extend: 'crud:row'}
+$template({name: 'tasks:crud:row', extend: 'crud:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.story }}')
@@ -681,7 +511,7 @@ $template({name: 'tasks:row', extend: 'crud:row'}
   )
 )
 
-$template({name: 'tasks:detail', extend: 'crud:detail'}
+$template({name: 'tasks:crud:detail', extend: 'crud:detail'}
 , $block('detailRows'
   , TR(
       TH('Task name')
@@ -729,282 +559,6 @@ $template({name: 'tasks:detail', extend: 'crud:detail'}
 )
 
 }
-
-// =================================================================== Views ===
-
-function Views(attrs) {
-  extend(this, attrs)
-}
-
-/**
- * Tracks views which have been created.
- */
-Views.created = []
-
-/**
- * Creates a new object which extends Views, with the given attributes.
- */
-Views.create = function(attrs) {
-  console.log('Views.create', attrs.name)
-  var F = function(attrs) {
-    Views.call(this, attrs)
-  }
-  inherits(F, Views)
-  var views = new F(attrs)
-  Views.created.push(views)
-  return views
-}
-
-/**
- * Calls the init() function on each created views object which has one.
- */
-Views.initAll = function() {
-  for (var i = 0, l = Views.created.length; i < l; i++) {
-    if (typeof Views.created[i].init == 'function') {
-      Views.created[i].init()
-    }
-  }
-}
-
-/**
- * Renders a template with the given name, using the given context. If an object
- * defining event handling functions is given, the functions will be bound to
- * this Views instance and added to the template context as an 'events' property.
- */
-Views.prototype.render = function(templateName, context, events) {
-  if (events) {
-    for (var e in events) {
-      if (events[e] == null) {
-        console.warn('Event ' + e + ' for use with ' + templateName + ' is null or undefined.')
-      }
-      else {
-        events[e] = bind(events[e], this)
-      }
-    }
-    context.events = events
-  }
-  return DOMBuilder.template.renderTemplate(templateName, context)
-}
-
-/**
- * Renders a template and displays the results as this view's element contents.
- */
-Views.prototype.display = function(templateName, context, events) {
-  replace(this.el, this.render(templateName, context, events))
-}
-
-/**
- * Logs a message with this view's name.
- */
-Views.prototype.log = function(s) {
-  console.log(this.name, s)
-}
-
-// --------------------------------------------------------------- CrudViews ---
-
-/**
- * Views which do some of the repetitive work for basic CRUD functionality.
- */
-function CrudViews(attrs) {
-  Views.call(this, attrs)
-}
-inherits(CrudViews, Views)
-
-/**
- * Creates a new object which extends CrudViews, with the given attributes.
- */
-CrudViews.create = function(attrs) {
-  console.log('CrudViews.create', attrs.name)
-  var F = function(attrs) {
-    CrudViews.call(this, attrs)
-  }
-  inherits(F, CrudViews)
-  var views = new F(attrs)
-  // Push the new views to the base Views constructor so they will have their
-  // init method called by Views.initAll.
-  Views.created.push(views)
-  return views
-}
-
-extend(CrudViews.prototype, {
-  /**
-   * Overrides render to pass in template variables which are required for CRUD
-   * templates.
-   */
-  render: function(templateName, context, events) {
-    extend(context, {
-      ns: this.namespace
-    , model: this.storage.model._meta
-    })
-    return Views.prototype.render.call(this, templateName, context, events)
-  }
-
-, init: function() {
-    this.log('init')
-    this.el = document.getElementById(this.elementId)
-    this.list()
-  }
-
-, list: function() {
-    this.log('list')
-    this.display([this.namespace + ':list', 'crud:list']
-      , { items: this.storage.all()
-        , rowTemplates: [this.namespace + ':row', 'crud:row']
-        }
-      , { select: this.select
-        , add: this.add
-        }
-      )
-  }
-
-, select: function(e) {
-    this.log('select')
-    var id = e.target.getAttribute('data-id')
-    this.selectedItem = this.storage.get(id)
-    this.detail()
-  }
-
-, detail: function() {
-    this.log('detail')
-    this.display([this.namespace + ':detail', 'crud:detail']
-      , { item: this.selectedItem }
-      , { edit: this.edit
-        , preDelete: this.preDelete
-        }
-      )
-  }
-
-, add: function() {
-    this.log('add')
-    this.display([this.namespace + ':add', 'crud:add']
-      , { form: this.form() }
-      , { submit: this.createItem
-        , cancel: this.list
-        }
-      )
-  }
-
-, createItem: function(e) {
-    this.log('createItem')
-    e.preventDefault()
-    var form = this.form({ data: forms.formData(this.namespace + 'Form') })
-    if (form.isValid()) {
-      this.storage.add(new this.storage.model(form.cleanedData))
-      this.list()
-    }
-    else {
-      replace(this.namespace + 'FormBody', form.asTable())
-    }
-  }
-
-, edit: function() {
-    this.log('edit')
-    this.display([this.namespace + ':edit', 'crud:edit']
-      , { item: this.selectedItem
-        , form: this.form({ initial: this.selectedItem })
-        }
-      , { submit: this.updateItem
-        , cancel: this.detail
-        }
-      )
-  }
-
-, updateItem: function(e) {
-    this.log('updateItem')
-    e.preventDefault()
-    var form = this.form({ data: forms.formData(this.namespace + 'Form')
-                         , initial: this.selectedItem
-                         })
-    if (form.isValid()) {
-      extend(this.selectedItem, form.cleanedData)
-      this.selectedItem = null
-      this.list()
-    }
-    else {
-      replace(this.namespace + 'FormBody', form.asTable())
-    }
-  }
-
-, preDelete: function() {
-    this.log('preDelete')
-    this.display([this.namespace + ':delete', 'crud:delete']
-      , { item: this.selectedItem }
-      , { confirmDelete: this.confirmDelete
-        , cancel: this.detail
-        }
-      )
-  }
-
-, confirmDelete: function(e) {
-    this.log('confirmDelete')
-    e.preventDefault()
-    this.storage.remove(this.selectedItem)
-    this.selectedItem = null
-    this.list()
-  }
-})
-
-// ---------------------------------------------------------------- Users ---
-
-var UserViews = CrudViews.create({
-  name: 'UserViews'
-, namespace: 'users'
-, elementId: 'users'
-, storage: Users
-, form: UserForm
-})
-
-// ---------------------------------------------------------------- Projects ---
-
-var ProjectViews = CrudViews.create({
-  name: 'ProjectViews'
-, namespace: 'projects'
-, elementId: 'projects'
-, storage: Projects
-, form: ProjectForm
-})
-
-// ---------------------------------------------------------------- Releases ---
-
-var ReleaseViews = CrudViews.create({
-  name: 'ReleaseViews'
-, namespace: 'releases'
-, elementId: 'releases'
-, storage: Releases
-, form: ReleaseForm
-})
-
-// -------------------------------------------------------------- Iterations ---
-
-var IterationViews = CrudViews.create({
-  name: 'IterationViews'
-, namespace: 'iterations'
-, elementId: 'iterations'
-, storage: Iterations
-, form: IterationForm
-})
-
-// ---------------------------------------------------------------- Stories ---
-
-var StoryViews = CrudViews.create({
-  name: 'StoryViews'
-, namespace: 'stories'
-, elementId: 'stories'
-, storage: Stories
-, form: StoryForm
-})
-
-// ------------------------------------------------------------------- Tasks ---
-
-var TaskViews = CrudViews.create({
-  name: 'TaskViews'
-, namespace: 'tasks'
-, elementId: 'tasks'
-, storage: Tasks
-, form: TaskForm
-})
-
-// TODO Add an AppView to manage display of the different sections
 
 // ============================================================= Sample Data ===
 
