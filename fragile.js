@@ -751,9 +751,19 @@ Views.prototype.render = function(templateName, context, events) {
     }
     context.events = events
   }
-  replace(this.el, DOMBuilder.template.renderTemplate(templateName, context))
+  return DOMBuilder.template.renderTemplate(templateName, context)
 }
 
+/**
+ * Renders a template and displays the results as this view's element contents.
+ */
+Views.prototype.display = function(templateName, context, events) {
+  replace(this.el, this.render(templateName, context, events))
+}
+
+/**
+ * Logs a message with this view's name.
+ */
 Views.prototype.log = function(s) {
   console.log(this.name, s)
 }
@@ -794,7 +804,7 @@ extend(CrudViews.prototype, {
       ns: this.namespace
     , model: this.storage.model._meta
     })
-    Views.prototype.render.call(this, templateName, context, events)
+    return Views.prototype.render.call(this, templateName, context, events)
   }
 
 , init: function() {
@@ -805,7 +815,7 @@ extend(CrudViews.prototype, {
 
 , list: function() {
     this.log('list')
-    this.render([this.namespace + ':list', 'crud:list']
+    this.display([this.namespace + ':list', 'crud:list']
       , { items: this.storage.all()
         , rowTemplates: [this.namespace + ':row', 'crud:row']
         }
@@ -824,7 +834,7 @@ extend(CrudViews.prototype, {
 
 , detail: function() {
     this.log('detail')
-    this.render([this.namespace + ':detail', 'crud:detail']
+    this.display([this.namespace + ':detail', 'crud:detail']
       , { item: this.selectedItem }
       , { edit: this.edit
         , preDelete: this.preDelete
@@ -834,7 +844,7 @@ extend(CrudViews.prototype, {
 
 , add: function() {
     this.log('add')
-    this.render([this.namespace + ':add', 'crud:add']
+    this.display([this.namespace + ':add', 'crud:add']
       , { form: this.form() }
       , { submit: this.createItem
         , cancel: this.list
@@ -857,7 +867,7 @@ extend(CrudViews.prototype, {
 
 , edit: function() {
     this.log('edit')
-    this.render([this.namespace + ':edit', 'crud:edit']
+    this.display([this.namespace + ':edit', 'crud:edit']
       , { item: this.selectedItem
         , form: this.form({ initial: this.selectedItem })
         }
@@ -885,7 +895,7 @@ extend(CrudViews.prototype, {
 
 , preDelete: function() {
     this.log('preDelete')
-    this.render([this.namespace + ':delete', 'crud:delete']
+    this.display([this.namespace + ':delete', 'crud:delete']
       , { item: this.selectedItem }
       , { confirmDelete: this.confirmDelete
         , cancel: this.detail
