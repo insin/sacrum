@@ -539,10 +539,9 @@ $template('admin:edit'
 )
 
 $template('admin:delete'
-, $block('top'
-  , H2('Confirm Deletion')
-  )
-, $block('controls'
+, H2('Confirm Deletion')
+, P('Are you sure you want to delete the {{ model.name }} "{{ item }}"?')
+, DIV({'class': 'controls'}
   , INPUT({type: 'submit', value: 'Delete {{ model.name }}', click: $func('events.confirmDelete'), 'class': 'delete'})
   , buttonSpacer()
   , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
