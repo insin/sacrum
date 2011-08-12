@@ -72,6 +72,9 @@ function lineBreaks(s) {
   return display
 }
 
+/**
+ * Formats a date in Oct 25, 2006 format.
+ */
 function formatDate(d) {
   if (!d) return ''
   return forms.util.time.strftime(d, '%b %d, %Y')
@@ -79,6 +82,9 @@ function formatDate(d) {
 
 // ================================================================== Models ===
 
+/**
+ * Base constructor for models - doesn't actually do much yet.
+ */
 function Model(attrs) {
   extend(this, attrs)
 }
@@ -201,6 +207,9 @@ extend(Task.prototype, {
 
 // ===================================================== Storage / Retrieval ===
 
+/**
+ * Stores and retrieves instances of the given model.
+ */
 function Storage(model) {
   this._store = {}
   this._idSeed = 1
@@ -211,12 +220,18 @@ Storage.prototype.query = function() {
   return new Query(this)
 }
 
+/**
+ * Generates a new id for a model instance and stores it.
+ */
 Storage.prototype.add = function(instance) {
   instance.id = this._idSeed++
   this._store[instance.id] = instance
   return instance
 }
 
+/**
+ * Retrieves all model instances.
+ */
 Storage.prototype.all = function() {
   var a = []
   for (var id in this._store) {
@@ -225,21 +240,34 @@ Storage.prototype.all = function() {
   return a
 }
 
+/**
+ * Retrieves the model instance with the given id, or null if it doesn't exist.
+ */
 Storage.prototype.get = function(id) {
-  return this._store[id]
+  return this._store[id] || null
 }
 
-Storage.prototype.remove = function(project) {
-  delete this._store[project.id]
+/**
+ * Removes the given model instance.
+ */
+Storage.prototype.remove = function(instance) {
+  delete this._store[instance.id]
 }
 
-// Need an object which has access to query results and a link to the means of
-// looking stuff up to hook up with newforms' ModelChoiceField.
-
+/**
+ * A representation of a query on a Storage object, which can be used to obtain
+ * query results or perform further retrieval.
+ *
+ * We need an object which has access to query results and a link to the means
+ * of looking stuff up to hook up with newforms' ModelChoiceField.
+ */
 function Query(storage) {
   this.storage = storage
 }
 
+/**
+ * Fetches query results - for now, always returns all instances in the storage.
+ */
 Query.prototype.__iter__ = function() {
   return this.storage.all()
 }
@@ -260,7 +288,7 @@ var Projects = new Storage(Project)
 // Let newforms know what our cobbled-together storage and retrieval looks like
 extend(forms.ModelInterface, {
   throwsIfNotFound: false
-, notFoundValue: undefined
+, notFoundValue: null
 , prepareValue: function(instance) {
     return instance.id
   }
