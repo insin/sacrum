@@ -396,7 +396,7 @@ $template('crud:list'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , SPAN({click: $func('events.add'), 'class': 'button add'}, 'Add {{ model.name }}')
+    , SPAN({click: $func('events.add'), 'class': 'button'}, 'Add {{ model.name }}')
     )
   )
 )
@@ -424,9 +424,9 @@ $template('crud:detail'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , SPAN({click: $func('events.edit'), 'class': 'button edit'}, 'Edit')
+    , SPAN({click: $func('events.edit'), 'class': 'button'}, 'Edit')
     , buttonSpacer()
-    , SPAN({click: $func('events.preDelete'), 'class': 'button delete'}, 'Delete')
+    , SPAN({click: $func('events.preDelete'), 'class': 'button'}, 'Delete')
     )
   )
 )
