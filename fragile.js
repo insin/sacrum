@@ -308,7 +308,7 @@ $template({name: 'users:admin:list', extend: 'admin:list'}
   )
 )
 
-$template({name: 'users:admin:row', extend: 'admin:row'}
+$template({name: 'users:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.email }}')
@@ -345,7 +345,7 @@ $template({name: 'projects:admin:list', extend: 'admin:list'}
   )
 )
 
-$template({name: 'projects:admin:row', extend: 'admin:row'}
+$template({name: 'projects:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 )
 
@@ -367,7 +367,7 @@ $template({name: 'releases:admin:list', extend: 'admin:list'}
   )
 )
 
-$template({name: 'releases:admin:row', extend: 'admin:row'}
+$template({name: 'releases:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.project }}')
@@ -397,7 +397,7 @@ $template({name: 'iterations:admin:list', extend: 'admin:list'}
   )
 )
 
-$template({name: 'iterations:admin:row', extend: 'admin:row'}
+$template({name: 'iterations:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.startDateDisplay }}')
@@ -433,7 +433,7 @@ $template({name: 'stories:admin:list', extend: 'admin:list'}
   )
 )
 
-$template({name: 'stories:admin:row', extend: 'admin:row'}
+$template({name: 'stories:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.iteration }}')
@@ -496,7 +496,7 @@ $template({name: 'tasks:admin:list', extend: 'admin:list'}
   )
 )
 
-$template({name: 'tasks:admin:row', extend: 'admin:row'}
+$template({name: 'tasks:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.story }}')
