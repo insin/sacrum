@@ -471,7 +471,8 @@ $template('admin:list'
         )
       ))
     , TBODY($for('item in items'
-      , $include($var('rowTemplates'), {item: $var('item')})
+      , $cycle(['odd', 'even'], {as: 'rowClass', silent: true})
+      , $include($var('rowTemplates'))
       ))
     )
   )
@@ -483,7 +484,7 @@ $template('admin:list'
 )
 
 $template('admin:listRow'
-, TR({id: '{{ ns }}-{{ item.id }}'}
+, TR({id: '{{ ns }}-{{ item.id }}', 'class': '{{ rowClass }}'}
   , TD({click: $func('events.select'), 'data-id': '{{ item.id }}', 'class': 'link'}
     , $block('linkText', '{{ item }}')
     )
