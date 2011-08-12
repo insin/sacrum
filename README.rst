@@ -23,10 +23,25 @@ areas until I know what the long-term direction is here (see `NOTES.rst`_).
    Base constructor for data types. Sets initial attributes, otherwise just a
    marker at the moment.
 
+   Don't forget to add a ``toString`` method to any constructors which extend
+   Model::
+
+      inherits(Vehicle, Model)
+      function Vehicle(attrs) {
+        Model.call(this, attrs)
+      }
+      Vehicle.prototype.toString = function() {
+        return this.registration
+      }
+
 ``Storage(model)``
 
    Storage and retrieval of instances of a particular Model. Not persistent
    yet.
+
+   ::
+
+      var Vehicles = new Storage(Vehicle)
 
    ``add(instance)``
       Generates and id for and adds the given instance.
@@ -66,14 +81,15 @@ display logic.
    Base constructor for objects containing functions which implement display and
    control logic.
 
-   Generally, views should be instantiated using ``Views.create``.
+   Generally, Views should be instantiated using ``Views.create``.
 
 ``Views.create(attrs)``
    Creates a ``Views`` instance using a passed-in object defining instance
    attributes and keeps a record of instances which were created for later use
-   by ``Views,prototype.initAll()``.
+   by ``Views.prototype.initAll()``.
 
 ``Views.prototype`` provides utility methods which expect the following instance
+
 attributes:
 
    ``name`` *(String)*
@@ -113,12 +129,25 @@ The following methods are available on ``Views.prototype``:
    ``log(message)``, ``warn(message)``
       Console logging methods, which include the Views' name in logs.
 
-CrudViews
-~~~~~~~~~
+AdminViews
+~~~~~~~~~~
 
 Views which take care of some of the repetitive work involved in creating
-basic CRUD functionality. This specialised version of ``Views`` expects to find
-the following instance attributes, all of which are required:
+basic Create  / Retrieve / Update / Delete (CRUD) functionality.
+
+``AdminViews(attrs)``
+   Base constructor for objects containing functions which implement display and control logic.
+
+   AdminViews should be instantiated using ``AdminViews.create``.
+
+``AdminViews.create(attrs)``
+   Creates an ``AdminViews`` instance using a passed-in object defining instance
+   attributes and keeps a record of instances which were created for later use
+   by ``Views.prototype.initAll()``.
+
+This specialised version of ``Views`` expects the following instance attributes
+to be set, all of which are required:
+
 
    ``namespace`` *(String)*
       Unique namespace for the instance - used in base templates to ensure
@@ -136,57 +165,61 @@ the following instance attributes, all of which are required:
       A Form used to take and validate user input when creating and updating
       Model instances.
 
-Example of using CrudViews::
+Example of using AdminViews::
 
-   var VehicleCrudViews = CrudViews.create(
-     name: 'VehicleCrudViews'
+   var VehicleAdminViews = AdminViews.create(
+     name: 'VehicleAdminViews'
    , namespace: 'vehicles'
    , elementId: 'vehicles'
    , storage: Vehicles
    , form: VehicleForm
    })
 
+   // Later...
+   VehicleAdminViews.init()
+
 Templates
 #########
 
-CrudViews defines the following DOMBuilder templates, which you may wish to
+AdminViews defines the following DOMBuilder templates, which you may wish to
 extend:
 
-+-----------------+--------------------------------------------+--------------------------------------+
-| Template        | Description                                | Blocks                               |
-+=================+============================================+======================================+
-| ``crud:list``   | table listing of model instances           | itemTable, headers, controls         |
-+-----------------+--------------------------------------------+--------------------------------------+
-| ``crud:row``    | table row displayed in list view           | linkText, extraCells                 |
-+-----------------+--------------------------------------------+--------------------------------------+
-| ``crud:add``    | add form for creating a new model instance | N/A                                  |
-+-----------------+--------------------------------------------+--------------------------------------+
-| ``crud:detail`` | details of a selected model instance       | top, detailRows, controls            |
-+-----------------+--------------------------------------------+--------------------------------------+
-| ``crud:edit``   | edit form for a model instance             | N/A                                  |
-+-----------------+--------------------------------------------+--------------------------------------+
-| ``crud:delete`` | confirms deletion of a model instance      | Same as ``crud:detail`` - extends it |
-+-----------------+--------------------------------------------+--------------------------------------+
++------------------+--------------------------------------------+---------------------------------------+
+| Template         | Description                                | Blocks                                |
++==================+============================================+=======================================+
+| ``admin:list``   | table listing of model instances           | itemTable, headers, controls          |
++------------------+--------------------------------------------+---------------------------------------+
+| ``admin:row``    | table row displayed in list view           | linkText, extraCells                  |
++------------------+--------------------------------------------+---------------------------------------+
+| ``admin:add``    | add form for creating a new model instance | N/A                                   |
++------------------+--------------------------------------------+---------------------------------------+
+| ``admin:detail`` | details of a selected model instance       | top, detailRows, controls             |
++------------------+--------------------------------------------+---------------------------------------+
+| ``admin:edit``   | edit form for a model instance             | N/A                                   |
++------------------+--------------------------------------------+---------------------------------------+
+| ``admin:delete`` | confirms deletion of a model instance      | Same as ``admin:detail`` - extends it |
++------------------+--------------------------------------------+---------------------------------------+
 
-In the above template names, ``'crud'`` is a namespace.
+In the above template names, ``'admin'`` is a namespace.
 
-When loading templates, CrudViews first attempts to load a template using the
-namespace which was provided, so to override one of its templates, you just need
-do define a template named using your own namespace.
+When loading templates, AdminViews first attempts to load a template using the
+namespace which was provided when it was instantiated, so to override one of
+its templates, you just need to define a template named using your own
+namespace, leading.
 
 In our Vehicles example, you could extend these templates to display a vehicle's
 registration and the number of wheels it has in the list template like so::
 
    with (DOMBuilder.template) {
 
-   $template({name: 'vehicles:crud:list', extend: 'crud:list'}
+   $template({name: 'vehicles:admin:list', extend: 'admin:list'}
    , $block('headers'
      , TH('Registration')
      , TH('# Wheels')
      )
    )
 
-   $template({name: 'vehicles:crud:row', extend: 'crud:row'}
+   $template({name: 'vehicles:admin:row', extend: 'admin:row'}
    , $block('linkText', '{{ item.registration }}')
    , $block('extraCells'
      , TD('{{ item.wheels }}')

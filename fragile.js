@@ -234,7 +234,7 @@ var TaskForm = forms.Form({
 
 // ------------------------------------------------------------------- Users ---
 
-var UserViews = CrudViews.create({
+var UserViews = AdminViews.create({
   name: 'UserViews'
 , namespace: 'users'
 , elementId: 'users'
@@ -244,7 +244,7 @@ var UserViews = CrudViews.create({
 
 // ---------------------------------------------------------------- Projects ---
 
-var ProjectViews = CrudViews.create({
+var ProjectViews = AdminViews.create({
   name: 'ProjectViews'
 , namespace: 'projects'
 , elementId: 'projects'
@@ -254,7 +254,7 @@ var ProjectViews = CrudViews.create({
 
 // ---------------------------------------------------------------- Releases ---
 
-var ReleaseViews = CrudViews.create({
+var ReleaseViews = AdminViews.create({
   name: 'ReleaseViews'
 , namespace: 'releases'
 , elementId: 'releases'
@@ -264,7 +264,7 @@ var ReleaseViews = CrudViews.create({
 
 // -------------------------------------------------------------- Iterations ---
 
-var IterationViews = CrudViews.create({
+var IterationViews = AdminViews.create({
   name: 'IterationViews'
 , namespace: 'iterations'
 , elementId: 'iterations'
@@ -274,7 +274,7 @@ var IterationViews = CrudViews.create({
 
 // ----------------------------------------------------------------- Stories ---
 
-var StoryViews = CrudViews.create({
+var StoryViews = AdminViews.create({
   name: 'StoryViews'
 , namespace: 'stories'
 , elementId: 'stories'
@@ -284,7 +284,7 @@ var StoryViews = CrudViews.create({
 
 // ------------------------------------------------------------------- Tasks ---
 
-var TaskViews = CrudViews.create({
+var TaskViews = AdminViews.create({
   name: 'TaskViews'
 , namespace: 'tasks'
 , elementId: 'tasks'
@@ -298,9 +298,9 @@ var TaskViews = CrudViews.create({
 
 with (DOMBuilder.template) {
 
-// --------------------------------------------------------------Users ----
+// ------------------------------------------------------------------- Users ---
 
-$template({name: 'users:crud:list', extend: 'crud:list'}
+$template({name: 'users:admin:list', extend: 'admin:list'}
 , $block('headers'
   , TH('Name')
   , TH('Email')
@@ -308,7 +308,7 @@ $template({name: 'users:crud:list', extend: 'crud:list'}
   )
 )
 
-$template({name: 'users:crud:row', extend: 'crud:row'}
+$template({name: 'users:admin:row', extend: 'admin:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.email }}')
@@ -316,7 +316,7 @@ $template({name: 'users:crud:row', extend: 'crud:row'}
   )
 )
 
-$template({name: 'users:crud:detail', extend: 'crud:detail'}
+$template({name: 'users:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
   , TR(
       TH('Name')
@@ -339,17 +339,17 @@ $template({name: 'users:crud:detail', extend: 'crud:detail'}
 
 // ---------------------------------------------------------------- Projects ---
 
-$template({name: 'projects:crud:list', extend: 'crud:list'}
+$template({name: 'projects:admin:list', extend: 'admin:list'}
 , $block('headers'
   , TH('Project name')
   )
 )
 
-$template({name: 'projects:crud:row', extend: 'crud:row'}
+$template({name: 'projects:admin:row', extend: 'admin:row'}
 , $block('linkText', '{{ item.name }}')
 )
 
-$template({name: 'projects:crud:detail', extend: 'crud:detail'}
+$template({name: 'projects:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
   , TR(
       TH('Project name')
@@ -360,21 +360,21 @@ $template({name: 'projects:crud:detail', extend: 'crud:detail'}
 
 // ---------------------------------------------------------------- Releases ---
 
-$template({name: 'releases:crud:list', extend: 'crud:list'}
+$template({name: 'releases:admin:list', extend: 'admin:list'}
 , $block('headers'
   , TH('Release name')
   , TH('Project')
   )
 )
 
-$template({name: 'releases:crud:row', extend: 'crud:row'}
+$template({name: 'releases:admin:row', extend: 'admin:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.project }}')
   )
 )
 
-$template({name: 'releases:crud:detail', extend: 'crud:detail'}
+$template({name: 'releases:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
   , TR(
       TH('Release Name')
@@ -389,7 +389,7 @@ $template({name: 'releases:crud:detail', extend: 'crud:detail'}
 
 // --------------------------------------------------------------Iterations ----
 
-$template({name: 'iterations:crud:list', extend: 'crud:list'}
+$template({name: 'iterations:admin:list', extend: 'admin:list'}
 , $block('headers'
   , TH('Iteration name')
   , TH('Start date')
@@ -397,7 +397,7 @@ $template({name: 'iterations:crud:list', extend: 'crud:list'}
   )
 )
 
-$template({name: 'iterations:crud:row', extend: 'crud:row'}
+$template({name: 'iterations:admin:row', extend: 'admin:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.startDateDisplay }}')
@@ -405,7 +405,7 @@ $template({name: 'iterations:crud:row', extend: 'crud:row'}
   )
 )
 
-$template({name: 'iterations:crud:detail', extend: 'crud:detail'}
+$template({name: 'iterations:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
   , TR(
       TH('Iteration Name')
@@ -422,7 +422,7 @@ $template({name: 'iterations:crud:detail', extend: 'crud:detail'}
 
 // ----------------------------------------------------------------- Stories ---
 
-$template({name: 'stories:crud:list', extend: 'crud:list'}
+$template({name: 'stories:admin:list', extend: 'admin:list'}
 , $block('headers'
   , TH('Story name')
   , TH('Iteration')
@@ -433,7 +433,7 @@ $template({name: 'stories:crud:list', extend: 'crud:list'}
   )
 )
 
-$template({name: 'stories:crud:row', extend: 'crud:row'}
+$template({name: 'stories:admin:row', extend: 'admin:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.iteration }}')
@@ -444,7 +444,7 @@ $template({name: 'stories:crud:row', extend: 'crud:row'}
   )
 )
 
-$template({name: 'stories:crud:detail', extend: 'crud:detail'}
+$template({name: 'stories:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
   , TR(
       TH('Story name')
@@ -481,7 +481,7 @@ $template({name: 'stories:crud:detail', extend: 'crud:detail'}
 
 // ------------------------------------------------------------------- Tasks ---
 
-$template({name: 'tasks:crud:list', extend: 'crud:list'}
+$template({name: 'tasks:admin:list', extend: 'admin:list'}
 , $block('headers'
   , TH('Task name')
   , TH('Story')
@@ -496,7 +496,7 @@ $template({name: 'tasks:crud:list', extend: 'crud:list'}
   )
 )
 
-$template({name: 'tasks:crud:row', extend: 'crud:row'}
+$template({name: 'tasks:admin:row', extend: 'admin:row'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.story }}')
@@ -511,7 +511,7 @@ $template({name: 'tasks:crud:row', extend: 'crud:row'}
   )
 )
 
-$template({name: 'tasks:crud:detail', extend: 'crud:detail'}
+$template({name: 'tasks:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
   , TR(
       TH('Task name')

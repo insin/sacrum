@@ -252,7 +252,7 @@ Views.prototype.warn = function(message) {
   console.warn(this.name, message)
 }
 
-// --------------------------------------------------------------- CrudViews ---
+// -------------------------------------------------------------- AdminViews ---
 
 /**
  * Views which take care of some of the repetitive work involved in creating
@@ -278,21 +278,21 @@ Views.prototype.warn = function(message) {
  * @constructor
  * @param {Object} attrs instance attributes.
  */
-function CrudViews(attrs) {
+function AdminViews(attrs) {
   Views.call(this, attrs)
 }
-inherits(CrudViews, Views)
+inherits(AdminViews, Views)
 
 /**
- * Creates a new object which extends CrudViews, with the given attributes.
+ * Creates a new object which extends AdminViews, with the given attributes.
  * @param {Object} attrs instance attributes.
  */
-CrudViews.create = function(attrs) {
-  console.log('CrudViews.create', attrs.name)
+AdminViews.create = function(attrs) {
+  console.log('AdminViews.create', attrs.name)
   var F = function(attrs) {
-    CrudViews.call(this, attrs)
+    AdminViews.call(this, attrs)
   }
-  inherits(F, CrudViews)
+  inherits(F, AdminViews)
   var views = new F(attrs)
   // Push the new views to the base Views constructor so they will have their
   // init method called by Views.initAll.
@@ -301,7 +301,7 @@ CrudViews.create = function(attrs) {
 }
 
 // CrudView default implementation
-extend(CrudViews.prototype, {
+extend(AdminViews.prototype, {
   /**
    * Overrides render to pass in template variables which are required for CRUD
    * templates.
@@ -315,7 +315,7 @@ extend(CrudViews.prototype, {
   }
 
   /**
-   * Finds the content element for this CrudViews and displays a list of Model
+   * Finds the content element for this AdminViews and displays a list of Model
    * instances by default.
    */
 , init: function() {
@@ -329,9 +329,9 @@ extend(CrudViews.prototype, {
    */
 , list: function() {
     this.log('list')
-    this.display([this.namespace + ':crud:list', 'crud:list']
+    this.display([this.namespace + ':admin:list', 'admin:list']
       , { items: this.storage.all()
-        , rowTemplates: [this.namespace + ':crud:row', 'crud:row']
+        , rowTemplates: [this.namespace + ':admin:listRow', 'admin:listRow']
         }
       , { select: this.select
         , add: this.add
@@ -354,7 +354,7 @@ extend(CrudViews.prototype, {
    */
 , detail: function() {
     this.log('detail')
-    this.display([this.namespace + ':crud:detail', 'crud:detail']
+    this.display([this.namespace + ':admin:detail', 'admin:detail']
       , { item: this.selectedItem }
       , { edit: this.edit
         , preDelete: this.preDelete
@@ -367,7 +367,7 @@ extend(CrudViews.prototype, {
    */
 , add: function() {
     this.log('add')
-    this.display([this.namespace + ':crud:add', 'crud:add']
+    this.display([this.namespace + ':admin:add', 'admin:add']
       , { form: this.form() }
       , { submit: this.createItem
         , cancel: this.list
@@ -397,7 +397,7 @@ extend(CrudViews.prototype, {
    */
 , edit: function() {
     this.log('edit')
-    this.display([this.namespace + ':crud:edit', 'crud:edit']
+    this.display([this.namespace + ':admin:edit', 'admin:edit']
       , { item: this.selectedItem
         , form: this.form({ initial: this.selectedItem })
         }
@@ -432,7 +432,7 @@ extend(CrudViews.prototype, {
    */
 , preDelete: function() {
     this.log('preDelete')
-    this.display([this.namespace + ':crud:delete', 'crud:delete']
+    this.display([this.namespace + ':admin:delete', 'admin:delete']
       , { item: this.selectedItem }
       , { confirmDelete: this.confirmDelete
         , cancel: this.detail
@@ -456,13 +456,13 @@ extend(CrudViews.prototype, {
 
 with (DOMBuilder.template) {
 
-// ----------------------------------------------------- CrudViews Templates ---
+// ---------------------------------------------------- AdminViews Templates ---
 
 function buttonSpacer(text) {
   return DOMBuilder.template.SPAN({'class': 'spacer'}, text || ' or ')
 }
 
-$template('crud:list'
+$template('admin:list'
 , $block('itemTable'
   , TABLE(
       THEAD(TR(
@@ -482,7 +482,7 @@ $template('crud:list'
   )
 )
 
-$template('crud:row'
+$template('admin:listRow'
 , TR({id: '{{ ns }}-{{ item.id }}'}
   , TD({click: $func('events.select'), 'data-id': '{{ item.id }}', 'class': 'link'}
     , $block('linkText', '{{ item }}')
@@ -491,7 +491,7 @@ $template('crud:row'
   )
 )
 
-$template('crud:detail'
+$template('admin:detail'
 , $block('top')
 , $block('detail'
   , TABLE(TBODY(
@@ -512,7 +512,7 @@ $template('crud:detail'
   )
 )
 
-$template('crud:add'
+$template('admin:add'
 , FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/add/'}
   , TABLE(TBODY({id: '{{ ns }}FormBody'}
     , $var('form.asTable')
@@ -525,7 +525,7 @@ $template('crud:add'
   )
 )
 
-$template('crud:edit'
+$template('admin:edit'
 , FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/{{ item.id }}/edit/'}
   , TABLE(TBODY({id: '{{ ns }}FormBody'}
     , $var('form.asTable')
@@ -538,7 +538,7 @@ $template('crud:edit'
   )
 )
 
-$template({name: 'crud:delete', extend: 'crud:detail'}
+$template('admin:delete'
 , $block('top'
   , H2('Confirm Deletion')
   )
