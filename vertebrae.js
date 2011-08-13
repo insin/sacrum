@@ -11,6 +11,9 @@ function replace(el, content) {
   if (content instanceof Array) {
     content = DOMBuilder.fragment(content)
   }
+  else if (typeof content == 'string') {
+    content = document.createTextNode(content)
+  }
   el.appendChild(content)
 }
 

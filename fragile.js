@@ -292,7 +292,53 @@ var TaskViews = AdminViews.create({
 , form: TaskForm
 })
 
-// TODO Add an AppView to manage display of the different sections
+// --------------------------------------------------------------------- App ---
+
+var AppViews = Views.create({
+  _adminViews: []
+, _selectedAdminView: null
+, name: 'AppViews'
+
+, init: function() {
+    this.header = document.getElementById('admin-header')
+    this.el = document.getElementById('admin-content')
+    for (var i = 0, l = Views._created.length; i < l; i++) {
+      if (Views._created[i] instanceof AdminViews) {
+        var views = Views._created[i]
+        views.el = this.el
+        this._adminViews.push(Views._created[i])
+        this._adminViews.el = this.el
+      }
+    }
+    this.adminIndex()
+  }
+
+, adminIndex: function() {
+    replace(this.header, 'Admin')
+    this.display('admin:index'
+      , { adminViews: this._adminViews }
+      , { show: this.showAdminSection }
+      )
+  }
+
+, showAdminSection: function(e) {
+    e.preventDefault()
+    var selectedViewIndex = e.target.getAttribute('data-index')
+    var view = this._adminViews[selectedViewIndex]
+    replace(this.header, this.render('admin:header'
+      , { modelName: view.storage.model._meta.namePlural }
+      , { index: this.adminIndex
+        , reset: this.resetAdminView
+        }
+      ))
+    this.selectedAdminView = view
+    view.list()
+  }
+
+, resetAdminView: function() {
+    this.selectedAdminView.list()
+  }
+})
 
 // =============================================================== Templates ===
 
@@ -558,6 +604,32 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
   )
 )
 
+// ------------------------------------------------------- AppView Templates ---
+
+$template('admin:header'
+, $if('modelName'
+  , SPAN({click: $func('events.index'), 'class': 'link'}, 'Admin')
+  , ' : '
+  , SPAN({click: $func('events.reset'), 'class': 'link'}, '{{ modelName }}')
+  )
+)
+
+$template('admin:index'
+, TABLE(
+    THEAD(TR(
+      TH('Model')
+    ))
+  , TBODY($for('adminView in adminViews'
+    , $cycle(['odd', 'even'], {as: 'rowClass', silent: true})
+    , TR({'class': 'link {{ rowClass }}'}
+      , TD({click: $func('events.show'), 'data-index': '{{ forloop.counter0 }}'}
+        , $func('adminView.storage.model._meta.namePlural')
+        )
+      )
+    ))
+  )
+)
+
 }
 
 // ============================================================= Sample Data ===
@@ -603,4 +675,6 @@ Tasks.add(new Task(
 
 }()
 
-window.onload = bind(Views.initAll, Views)
+window.onload = function() {
+  AppViews.init()
+}
