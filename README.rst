@@ -8,9 +8,9 @@ more...
 Reusable Components
 ===================
 
-The following are defined in `vertebrae.js`_ (sorry!)
+The following are defined in `sacrum.js`_ (sorry!)
 
-.. _`vertebrae.js`: https://github.com/insin/fragile/blob/master/vertebrae.js
+.. _`sacrum.js`: https://github.com/insin/fragile/blob/master/sacrum.js
 
 Models
 ------
