@@ -296,7 +296,7 @@ var TaskViews = AdminViews.create({
 
 var AppViews = Views.create({
   _adminViews: []
-, _selectedAdminView: null
+, selectedAdminView: null
 , name: 'AppViews'
 
 , init: function() {
@@ -438,6 +438,7 @@ $template({name: 'releases:admin:detail', extend: 'admin:detail'}
 $template({name: 'iterations:admin:list', extend: 'admin:list'}
 , $block('headers'
   , TH('Iteration name')
+  , TH('Release')
   , TH('Start date')
   , TH('End date')
   )
@@ -446,6 +447,7 @@ $template({name: 'iterations:admin:list', extend: 'admin:list'}
 $template({name: 'iterations:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
+  , TD('{{ item.release }}')
   , TD('{{ item.startDateDisplay }}')
   , TD('{{ item.endDateDisplay }}')
   )
@@ -454,8 +456,12 @@ $template({name: 'iterations:admin:listRow', extend: 'admin:listRow'}
 $template({name: 'iterations:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
   , TR(
-      TH('Iteration Name')
+      TH('Iteration name')
     , TD({colSpan: 3}, '{{ item.name }}')
+    )
+  , TR(
+      TH('Release')
+    , TD({colSpan: 3}, '{{ item.release }}')
     )
   , TR(
       TH('Start date')
