@@ -184,21 +184,21 @@ Templates
 AdminViews defines the following DOMBuilder templates, which you may wish to
 extend:
 
-+------------------+--------------------------------------------+---------------------------------------+
-| Template         | Description                                | Blocks                                |
-+==================+============================================+=======================================+
-| ``admin:list``   | table listing of model instances           | itemTable, headers, controls          |
-+------------------+--------------------------------------------+---------------------------------------+
-| ``admin:row``    | table row displayed in list view           | linkText, extraCells                  |
-+------------------+--------------------------------------------+---------------------------------------+
-| ``admin:add``    | add form for creating a new model instance | N/A                                   |
-+------------------+--------------------------------------------+---------------------------------------+
-| ``admin:detail`` | details of a selected model instance       | top, detailRows, controls             |
-+------------------+--------------------------------------------+---------------------------------------+
-| ``admin:edit``   | edit form for a model instance             | N/A                                   |
-+------------------+--------------------------------------------+---------------------------------------+
-| ``admin:delete`` | confirms deletion of a model instance      | Same as ``admin:detail`` - extends it |
-+------------------+--------------------------------------------+---------------------------------------+
++-------------------+--------------------------------------------+---------------------------------------+
+| Template          | Description                                | Blocks                                |
++===================+============================================+=======================================+
+| ``admin:list``    | table listing of model instances           | itemTable, headers, controls          |
++-------------------+--------------------------------------------+---------------------------------------+
+| ``admin:listRow`` | table row displayed in list view           | linkText, extraCells                  |
++-------------------+--------------------------------------------+---------------------------------------+
+| ``admin:add``     | add form for creating a new model instance | N/A                                   |
++-------------------+--------------------------------------------+---------------------------------------+
+| ``admin:detail``  | details of a selected model instance       | top, detail, detailRows, controls     |
++-------------------+--------------------------------------------+---------------------------------------+
+| ``admin:edit``    | edit form for a model instance             | N/A                                   |
++-------------------+--------------------------------------------+---------------------------------------+
+| ``admin:delete``  | confirms deletion of a model instance      | N/A                                   |
++-------------------+--------------------------------------------+---------------------------------------+
 
 In the above template names, ``'admin'`` is a namespace.
 
@@ -219,7 +219,7 @@ registration and the number of wheels it has in the list template like so::
      )
    )
 
-   $template({name: 'vehicles:admin:row', extend: 'admin:row'}
+   $template({name: 'vehicles:admin:listRow', extend: 'admin:listRow'}
    , $block('linkText', '{{ item.registration }}')
    , $block('extraCells'
      , TD('{{ item.wheels }}')
