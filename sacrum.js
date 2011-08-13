@@ -156,7 +156,7 @@ extend(forms.ModelInterface, {
  * Base constructor for objects containing functions which implement display and
  * control logic. Generally, views are instantiated using Views.create - you
  * shouldn't need to use this contructor directly unless you're writing a
- * specialised base constructor, such as CrudViews.
+ * specialised base constructor, such as AdminViews.
  *
  * The base Views object provides functionality which expects the following
  * instance attributes:
@@ -303,7 +303,7 @@ AdminViews.create = function(attrs) {
   return views
 }
 
-// CrudView default implementation
+// AdminViews default implementation
 extend(AdminViews.prototype, {
   /**
    * Overrides render to pass in template variables which are required for CRUD
