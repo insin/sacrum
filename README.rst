@@ -81,15 +81,14 @@ display logic.
    Base constructor for objects containing functions which implement display and
    control logic.
 
-   Generally, Views should be instantiated using ``Views.create``.
+   Generally, Views should be instantiated using ``Views.extend``.
 
-``Views.create(attrs)``
+``Views.extend(attrs)``
    Creates a ``Views`` instance using a passed-in object defining instance
    attributes and keeps a record of instances which were created for later use
    by ``Views.prototype.initAll()``.
 
 ``Views.prototype`` provides utility methods which expect the following instance
-
 attributes:
 
    ``name`` *(String)*
@@ -129,25 +128,24 @@ The following methods are available on ``Views.prototype``:
    ``log(message)``, ``warn(message)``
       Console logging methods, which include the Views' name in logs.
 
-AdminViews
-~~~~~~~~~~
+ModelAdminViews
+~~~~~~~~~~~~~~~
 
 Views which take care of some of the repetitive work involved in creating
-basic Create  / Retrieve / Update / Delete (CRUD) functionality.
+basic Create  / Retrieve / Update / Delete (CRUD) functionality for a Model.
 
-``AdminViews(attrs)``
+``ModelAdminViews(attrs)``
    Base constructor for objects containing functions which implement display and control logic.
 
-   AdminViews should be instantiated using ``AdminViews.create``.
+   ModelAdminViews should be instantiated using ``ModelAdminViews.extend``.
 
-``AdminViews.create(attrs)``
-   Creates an ``AdminViews`` instance using a passed-in object defining instance
-   attributes and keeps a record of instances which were created for later use
-   by ``Views.prototype.initAll()``.
+``ModelAdminViews.extend(attrs)``
+   Creates an ``ModelAdminViews`` instance using a passed-in object defining
+   instance attributes and keeps a record of instances which were created for
+   later use by ``Views.prototype.initAll()``.
 
-This specialised version of ``Views`` expects the following instance attributes
-to be set, all of which are required:
-
+This specialised version of ``Views`` expects to find the following instance
+attributes:
 
    ``namespace`` *(String)*
       Unique namespace for the instance - used in base templates to ensure
@@ -155,7 +153,8 @@ to be set, all of which are required:
       override the base templates.
 
    ``elementId`` *(String)*
-      The id of the element in which content should be displayed.
+      The id of the element in which content should be displayed, if
+      appropriate.
 
    ``storage`` *(Storage)*
       A Storage object used to create, retrieve, update and delete Model
@@ -165,12 +164,11 @@ to be set, all of which are required:
       A Form used to take and validate user input when creating and updating
       Model instances.
 
-Example of using AdminViews::
+Example of using ModelAdminViews::
 
-   var VehicleAdminViews = AdminViews.create(
+   var VehicleAdminViews = ModelAdminViews.extend(
      name: 'VehicleAdminViews'
    , namespace: 'vehicles'
-   , elementId: 'vehicles'
    , storage: Vehicles
    , form: VehicleForm
    })
@@ -181,8 +179,8 @@ Example of using AdminViews::
 Templates
 #########
 
-AdminViews defines the following DOMBuilder templates, which you may wish to
-extend:
+ModelAdminViews defines the following DOMBuilder templates, which you may wish
+to extend:
 
 +-------------------+--------------------------------------------+---------------------------------------+
 | Template          | Description                                | Blocks                                |
@@ -202,8 +200,8 @@ extend:
 
 In the above template names, ``'admin'`` is a namespace.
 
-When loading templates, AdminViews first attempts to load a template using the
-namespace which was provided when it was instantiated, so to override one of
+When loading templates, ModelAdminViews first attempts to load a template using
+the namespace which was provided when it was instantiated, so to override one of
 its templates, you just need to define a template named using your own
 namespace, leading.
 

@@ -29,11 +29,13 @@ function formatDate(d) {
 
 // ================================================================== Models ===
 
-inherits(User, Model)
+// -------------------------------------------------------------------- User ---
+
 function User(attrs) {
   Model.call(this, attrs)
 }
-User._meta = {
+inherits(User, Model)
+User._meta = User.prototype._meta = {
   name: 'User'
 , namePlural: 'Users'
 }
@@ -41,19 +43,21 @@ extend(User.prototype, {
   toString: function() {
     return this.displayName
   }
-, imageDisplay: function() {
-    if (this.image) {
-      return DOMBuilder.elements.IMG({src: this.image})
+, profileImageDisplay: function() {
+    if (this.profileImage) {
+      return DOMBuilder.elements.IMG({src: this.profileImage})
     }
     return ''
   }
 })
 
-inherits(Project, Model)
+// ----------------------------------------------------------------- Project ---
+
 function Project(attrs) {
   Model.call(this, attrs)
 }
-Project._meta = {
+inherits(Project, Model)
+Project._meta = Project.prototype._meta = {
   name: 'Project'
 , namePlural: 'Projects'
 }
@@ -61,29 +65,83 @@ Project.prototype.toString = function() {
   return this.name
 }
 
-inherits(Release, Model)
+// ----------------------------------------------------------------- Package ---
+
+inherits(Package, Model)
+function Package(attrs) {
+  Model.call(this, attrs)
+}
+Package._meta = Package.prototype._meta = {
+  name: 'Package'
+, namePlural: 'Packages'
+}
+Package.prototype.toString = function() {
+  return this.name
+}
+
+// ----------------------------------------------------------------- Release ---
+
 function Release(attrs) {
   Model.call(this, attrs)
 }
-Release._meta = {
+inherits(Release, Model)
+Release._meta = Release.prototype._meta = {
   name: 'Release'
 , namePlural: 'Releases'
 }
-Release.prototype.toString = function() {
-  return this.project + ' - ' + this.name
-}
+Release.States = { PLANNING: 'P'
+                 , ACTIVE:   'X'
+                 , ACCEPTED: 'A'
+                 }
+Release.StateChoices = [ [Release.States.PLANNING, 'Planning']
+                       , [Release.States.ACTIVE,   'Active']
+                       , [Release.States.ACCEPTED, 'Accepted']
+                       ]
+extend(Release.prototype, {
+  toString: function() {
+    return this.name
+  }
+, themeDisplay: function() {
+    return lineBreaks(this.theme)
+  }
+, startDateDisplay: function() {
+    return formatDate(this.startDate)
+  }
+, releaseDateDisplay: function() {
+    return formatDate(this.releaseDate)
+  }
+, stateDisplay: function() {
+    return forms.util.itemsToObject(Release.StateChoices)[this.state]
+  }
+, notesDisplay: function() {
+    return lineBreaks(this.notes)
+  }
+})
 
-inherits(Iteration, Model)
+// --------------------------------------------------------------- Iteration ---
+
 function Iteration(attrs) {
   Model.call(this, attrs)
 }
-Iteration._meta = {
+inherits(Iteration, Model)
+Iteration._meta = Iteration.prototype._meta = {
   name: 'Iteration'
 , namePlural: 'Iterations'
 }
+Iteration.States = { PLANNING:  'P'
+                   , COMMITTED: 'C'
+                   , ACCEPTED:  'A'
+                   }
+Iteration.StateChoices = [ [Iteration.States.PLANNING,  'Planning']
+                         , [Iteration.States.COMMITTED, 'Committed']
+                         , [Iteration.States.ACCEPTED,  'Accepted']
+                         ]
 extend(Iteration.prototype, {
   toString: function() {
     return this.name
+  }
+, themeDisplay: function() {
+    return lineBreaks(this.theme)
   }
 , startDateDisplay: function() {
     return formatDate(this.startDate)
@@ -91,22 +149,42 @@ extend(Iteration.prototype, {
 , endDateDisplay: function() {
     return formatDate(this.endDate)
   }
+, stateDisplay: function() {
+    return forms.util.itemsToObject(Iteration.StateChoices)[this.state]
+  }
+, notesDisplay: function() {
+    return lineBreaks(this.notes)
+  }
 })
 
-inherits(Story, Model)
+// ------------------------------------------------------------------- Story ---
+
 function Story(attrs) {
   Model.call(this, attrs)
 }
-Story._meta = {
+inherits(Story, Model)
+Story._meta = Story.prototype._meta = {
   name: 'Story'
 , namePlural: 'Stories'
 }
+Story.States = { SCOPED:      'S'
+               , DEFINED:     'D'
+               , IN_PROGRESS: 'P'
+               , COMPLETED:   'C'
+               , ACCEPTED:    'A'
+               }
+Story.StateChoices = [ [Story.States.SCOPED,      'Scoped']
+                     , [Story.States.DEFINED,     'Defined']
+                     , [Story.States.IN_PROGRESS, 'In-Progress']
+                     , [Story.States.COMPLETED,   'Completed']
+                     , [Story.States.ACCEPTED,    'Accepted']
+                     ]
 extend(Story.prototype, {
   toString: function() {
     return this.name
   }
 , stateDisplay: function() {
-    return forms.util.itemsToObject(STORY_STATE_CHOICES)[this.state]
+    return forms.util.itemsToObject(Story.StateChoices)[this.state]
   }
 , blockedDisplay: function() {
     return (this.blocked ? 'Yes' : 'No')
@@ -119,20 +197,33 @@ extend(Story.prototype, {
   }
 })
 
-inherits(Task, Model)
+// -------------------------------------------------------------------- Task ---
+
 function Task(attrs) {
   Model.call(this, attrs)
 }
-Task._meta = {
+inherits(Task, Model)
+Task._meta = Task.prototype._meta = {
   name: 'Task'
 , namePlural: 'Tasks'
 }
+Task.States = { DEFINED:     'D'
+              , IN_PROGRESS: 'P'
+              , COMPLETED:   'C'
+              }
+Task.StateChoices = [ [Task.States.DEFINED,     'Defined']
+                    , [Task.States.IN_PROGRESS, 'In-Progress']
+                    , [Task.States.COMPLETED,   'Completed']
+                    ]
 extend(Task.prototype, {
   toString: function() {
     return this.name
   }
+, getProject: function() {
+    return this.story.project
+  }
 , stateDisplay: function() {
-    return forms.util.itemsToObject(TASK_STATE_CHOICES)[this.state]
+    return forms.util.itemsToObject(Task.StateChoices)[this.state]
   }
 , blockedDisplay: function() {
     return (this.blocked ? 'Yes' : 'No')
@@ -148,6 +239,7 @@ extend(Task.prototype, {
 // ===================================================== Storage / Retrieval ===
 
 var Projects = new Storage(Project)
+  , Packages = new Storage(Package)
   , Releases = new Storage(Release)
   , Iterations = new Storage(Iteration)
   , Stories = new Storage(Story)
@@ -156,46 +248,51 @@ var Projects = new Storage(Project)
 
 // =================================================================== Forms ===
 
-var States = {
-  DEFINED: 'D'
-, IN_PROGRESS: 'P'
-, COMPLETED: 'C'
-, NOT_STARTED: 'N'
-}
-
-var STORY_STATE_CHOICES = [
-  [States.DEFINED,     'Defined']
-, [States.IN_PROGRESS, 'In Progress']
-, [States.COMPLETED,   'Completed']
-]
-
-var TASK_STATE_CHOICES = [
-  [States.NOT_STARTED, 'Not Started']
-, [States.IN_PROGRESS, 'In Progress']
-, [States.COMPLETED,   'Completed']
-]
-
 var UserForm = forms.Form({
   name: forms.CharField({maxLength: 255})
 , email: forms.EmailField()
 , displayName: forms.CharField({maxLength: 50})
-, image: forms.URLField({required: false})
+, profileImage: forms.URLField({required: false})
 })
 
 var ProjectForm = forms.Form({
   name: forms.CharField({maxLength: 50})
 })
 
+var PackageForm = forms.Form({
+  name: forms.CharField({maxLength: 50})
+})
+
 var ReleaseForm = forms.Form({
-  project: forms.ModelChoiceField(Projects.query())
-, name: forms.CharField({maxLength: 50})
+  name: forms.CharField({maxLength: 50})
+, theme: forms.CharField({required: false, widget: forms.Textarea})
+, startDate: forms.DateField()
+, releaseDate: forms.DateField()
+, state: forms.ChoiceField({choices: Release.StateChoices})
+, resources: forms.DecimalField({required: false, minValue: 0})
+, project: forms.ModelChoiceField(Projects.query())
+, estimate: forms.DecimalField({required: false, minValue: 0})
+, notes: forms.CharField({required: false, widget: forms.Textarea})
+
+, clean: function() {
+    if (this.cleanedData.startDate && this.cleanedData.releaseDate &&
+        this.cleanedData.startDate > this.cleanedData.releaseDate) {
+      throw new forms.ValidationError('Release Date cannot be prior to Start Date.')
+    }
+    return this.cleanedData
+  }
 })
 
 var IterationForm = forms.Form({
-  release: forms.ModelChoiceField(Releases.query())
-, name: forms.CharField({maxLength: 50})
-, startDate: forms.DateField({required: false})
-, endDate: forms.DateField({required: false})
+  name: forms.CharField({maxLength: 50})
+, theme: forms.CharField({required: false, widget: forms.Textarea})
+, startDate: forms.DateField()
+, endDate: forms.DateField()
+, state: forms.ChoiceField({choices: Iteration.StateChoices})
+, resources: forms.DecimalField({required: false, minValue: 0})
+, project: forms.ModelChoiceField(Projects.query())
+, estimate: forms.DecimalField({required: false, minValue: 0})
+, notes: forms.CharField({required: false, widget: forms.Textarea})
 
 , clean: function() {
     if (this.cleanedData.startDate && this.cleanedData.endDate &&
@@ -207,144 +304,204 @@ var IterationForm = forms.Form({
 })
 
 var StoryForm = forms.Form({
-  iteration: forms.ModelChoiceField(Iterations.query())
-, name: forms.CharField({maxLength: 255})
+  name: forms.CharField({maxLength: 255})
 , description: forms.CharField({widget: forms.Textarea, required: false})
-, state: forms.ChoiceField({choices: STORY_STATE_CHOICES, initial: States.DEFINED})
-, blocked: forms.BooleanField({initial: false, required: false})
-, planned: forms.DecimalField({required: false, minValue: 0})
 , owner: forms.ModelChoiceField(Users.query(), {required: false})
+, package: forms.ModelChoiceField(Packages.query(), {required: false})
+, project: forms.ModelChoiceField(Projects.query())
+, parent: forms.ModelChoiceField(Stories.query(), {required: false})
+, state: forms.ChoiceField({choices: Story.StateChoices, initial: Story.States.SCOPED})
+, blocked: forms.BooleanField({required: false, initial: false})
+, release: forms.ModelChoiceField(Releases.query(), {required: false})
+, iteration: forms.ModelChoiceField(Iterations.query(), {required: false})
+, planEstimate: forms.DecimalField({required: false, minValue: 0})
+, rank: forms.CharField({required: false, maxLength: 50})
 , notes: forms.CharField({required: false, widget: forms.Textarea})
 })
 
 var TaskForm = forms.Form({
-  story: forms.ModelChoiceField(Stories.query())
-, name: forms.CharField({maxLength: 255})
-, description: forms.CharField({widget: forms.Textarea, required: false})
-, state: forms.ChoiceField({choices: TASK_STATE_CHOICES, initial: States.NOT_STARTED})
-, blocked: forms.BooleanField({initial: false, required: false})
-, estimated: forms.DecimalField({minValue: 0})
-, actual: forms.DecimalField({minValue: 0})
-, todo: forms.DecimalField({minValue: 0})
+  name: forms.CharField({maxLength: 255})
+, description: forms.CharField({required: false, widget: forms.Textarea})
 , owner: forms.ModelChoiceField(Users.query(), {required: false})
-, notes: forms.CharField({widget: forms.Textarea, required: false})
+, state: forms.ChoiceField({choices: Task.StateChoices, initial: Task.States.DEFINED})
+, blocked: forms.BooleanField({required: false, initial: false})
+, estimate: forms.DecimalField({required: false, minValue: 0})
+, actuals: forms.DecimalField({required: false, minValue: 0})
+, todo: forms.DecimalField({required: false, minValue: 0})
+, story: forms.ModelChoiceField(Stories.query())
+, rank: forms.CharField({required: false, maxLength: 50})
+, notes: forms.CharField({required: false, widget: forms.Textarea})
 })
 
 // =================================================================== Views ===
 
-// ------------------------------------------------------------------- Users ---
+// ------------------------------------------------------- Model Admin Views ---
 
-var UserViews = AdminViews.create({
-  name: 'UserViews'
+var UserAdminViews = ModelAdminViews.extend({
+  name: 'UserAdminViews'
 , namespace: 'users'
-, elementId: 'users'
 , storage: Users
 , form: UserForm
 })
 
-// ---------------------------------------------------------------- Projects ---
-
-var ProjectViews = AdminViews.create({
-  name: 'ProjectViews'
+var ProjectViews = ModelAdminViews.extend({
+  name: 'ProjectAdminViews'
 , namespace: 'projects'
-, elementId: 'projects'
 , storage: Projects
 , form: ProjectForm
 })
 
-// ---------------------------------------------------------------- Releases ---
+var PackageViews = ModelAdminViews.extend({
+  name: 'PackageAdminViews'
+, namespace: 'packages'
+, storage: Packages
+, form: PackageForm
+})
 
-var ReleaseViews = AdminViews.create({
-  name: 'ReleaseViews'
+var ReleaseViews = ModelAdminViews.extend({
+  name: 'ReleaseAdminViews'
 , namespace: 'releases'
-, elementId: 'releases'
 , storage: Releases
 , form: ReleaseForm
 })
 
-// -------------------------------------------------------------- Iterations ---
-
-var IterationViews = AdminViews.create({
-  name: 'IterationViews'
+var IterationViews = ModelAdminViews.extend({
+  name: 'IterationAdminViews'
 , namespace: 'iterations'
-, elementId: 'iterations'
 , storage: Iterations
 , form: IterationForm
 })
 
-// ----------------------------------------------------------------- Stories ---
-
-var StoryViews = AdminViews.create({
-  name: 'StoryViews'
+var StoryViews = ModelAdminViews.extend({
+  name: 'StoryAdminViews'
 , namespace: 'stories'
-, elementId: 'stories'
 , storage: Stories
 , form: StoryForm
 })
 
-// ------------------------------------------------------------------- Tasks ---
-
-var TaskViews = AdminViews.create({
-  name: 'TaskViews'
+var TaskAdminViews = ModelAdminViews.extend({
+  name: 'TaskAdminViews'
 , namespace: 'tasks'
-, elementId: 'tasks'
 , storage: Tasks
 , form: TaskForm
 })
 
-// --------------------------------------------------------------------- App ---
+// ------------------------------------------------------------- Admin Views ---
 
-var AppViews = Views.create({
-  _adminViews: []
-, selectedAdminView: null
-, name: 'AppViews'
+var AdminViews = Views.extend({
+  name: 'AdminViews'
+
+, modelViews: []
+, selectedModelViews: null
 
 , init: function() {
+    this.log('init')
     this.header = document.getElementById('admin-header')
     this.el = document.getElementById('admin-content')
+
+    // Automatically hook ap all ModelAdminViews which have been created
     for (var i = 0, l = Views._created.length; i < l; i++) {
-      if (Views._created[i] instanceof AdminViews) {
+      if (Views._created[i] instanceof ModelAdminViews) {
         var views = Views._created[i]
+        // Give all ModelAdminViews the same admin element to display content in
         views.el = this.el
-        this._adminViews.push(Views._created[i])
-        this._adminViews.el = this.el
+        this.modelViews.push(views)
       }
     }
-    this.adminIndex()
+
+    this.index()
   }
 
-, adminIndex: function() {
+  /**
+   * Lists models for which ModelAdminViews have been created.
+   */
+, index: function() {
+    this.log('index')
     replace(this.header, 'Admin')
     this.display('admin:index'
-      , { adminViews: this._adminViews }
-      , { show: this.showAdminSection }
+      , { modelViews: this.modelViews }
+      , { select: this.selectModelViews }
       )
   }
 
-, showAdminSection: function(e) {
+  /**
+   * Selects a ModelAdminView and displays its list.
+   */
+, selectModelViews: function(e) {
+    this.log('selectModelView')
     e.preventDefault()
     var selectedViewIndex = e.target.getAttribute('data-index')
-    var view = this._adminViews[selectedViewIndex]
-    replace(this.header, this.render('admin:header'
-      , { modelName: view.storage.model._meta.namePlural }
-      , { index: this.adminIndex
-        , reset: this.resetAdminView
-        }
-      ))
-    this.selectedAdminView = view
-    view.list()
+    var views = this.modelViews[selectedViewIndex]
+    replace(this.header,
+      this.render('admin:header'
+        , { modelName: views.storage.model._meta.namePlural }
+        , { index: this.index
+          , backToList: this.backToList
+          }
+        ))
+    this.selectedModelViews = views
+    views.list()
   }
 
-, resetAdminView: function() {
-    this.selectedAdminView.list()
+  /**
+   * Re-lists the selected ModelAdminView. Temporary workaround until
+   * URLs/history are implemented.
+   */
+, backToList: function() {
+    this.selectedModelViews.list()
   }
 })
 
 // =============================================================== Templates ===
 
-with (DOMBuilder.template) {
+!function() { with (DOMBuilder.template) {
 
-// ------------------------------------------------------------------- Users ---
+var template = DOMBuilder.template
+
+/**
+ * Creates a detail section.
+ */
+function section(label, rows) {
+  var els = [
+    template.TR({'class': 'section'}
+    , template.TD({colSpan: 4}, label)
+    )
+  ]
+
+  if (rows) {
+    for (var i = 0, l = rows.length; i < l; i++) {
+      var row = rows[i]
+        , rowFunc = (row.length == 2 ? singleRow : multiRow);
+      els.push(rowFunc.apply(null, row))
+    }
+  }
+
+  return els
+}
+
+/**
+ * Creates a row containing a single item in a detail section.
+ */
+function singleRow(label, value) {
+ return template.TR(
+          template.TH(label + ':')
+        , template.TD({colSpan: 3}, '{{ item.' + value + ' }}')
+        )
+}
+
+/**
+ * Creates a row containing a pair of items in a detail section.
+ */
+function multiRow(label1, value1, label2, value2) {
+ return template.TR(
+          template.TH(label1 + ':')
+        , template.TD('{{ item.' + value1 + ' }}')
+        , template.TH(label2 + ':')
+        , template.TD('{{ item.' + value2 + ' }}')
+        )
+}
+
+// -------------------------------------------------------------- User Admin ---
 
 $template({name: 'users:admin:list', extend: 'admin:list'}
 , $block('headers'
@@ -364,111 +521,91 @@ $template({name: 'users:admin:listRow', extend: 'admin:listRow'}
 
 $template({name: 'users:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
-  , TR(
-      TH('Name')
-    , TD('{{ item.name }}')
-    )
-  , TR(
-      TH('Email')
-    , TD('{{ item.email }}')
-    )
-  , TR(
-      TH('Display name')
-    , TD('{{ item.displayName }}')
-    )
-  , TR(
-      TH('Image')
-    , TD($var('item.imageDisplay'))
-    )
+  , section('Account Information',
+        [ ['Email Address', 'email']
+        , ['Name'         , 'name' ]
+        ]
+      )
+
+  , section('Display Preferences',
+        [ ['Display Name' , 'displayName'        ]
+        , ['Profile Image', 'profileImageDisplay']
+        ]
+      )
   )
 )
 
-// ---------------------------------------------------------------- Projects ---
-
-$template({name: 'projects:admin:list', extend: 'admin:list'}
-, $block('headers'
-  , TH('Project name')
-  )
-)
-
-$template({name: 'projects:admin:listRow', extend: 'admin:listRow'}
-, $block('linkText', '{{ item.name }}')
-)
-
-$template({name: 'projects:admin:detail', extend: 'admin:detail'}
-, $block('detailRows'
-  , TR(
-      TH('Project name')
-    , TD('{{ item.name }}')
-    )
-  )
-)
-
-// ---------------------------------------------------------------- Releases ---
+// ----------------------------------------------------------- Release Admin ---
 
 $template({name: 'releases:admin:list', extend: 'admin:list'}
 , $block('headers'
-  , TH('Release name')
-  , TH('Project')
+  , TH('Name')
+  , TH('Theme')
+  , TH('Start Date')
+  , TH('Release Date')
+  , TH('State')
   )
 )
 
 $template({name: 'releases:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
-  , TD('{{ item.project }}')
+  , TD('{{ item.themeDisplay }}')
+  , TD('{{ item.startDateDisplay }}')
+  , TD('{{ item.releaseDateDisplay }}')
+  , TD('{{ item.stateDisplay }}')
   )
 )
 
 $template({name: 'releases:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
-  , TR(
-      TH('Release Name')
-    , TD('{{ item.name }}')
-    )
-  , TR(
-      TH('Project')
-    , TD('{{ item.project }}')
-    )
+  , section('General',
+        [ ['Name'         , 'name'            ]
+        , ['Theme'        , 'themeDisplay'    ]
+        , ['Start Date'   , 'startDateDisplay', 'Release Date', 'releaseDateDisplay']
+        , ['State'        , 'stateDisplay'    , 'Resources'   , 'resources'         ]
+        , ['Project'      , 'project'         ]
+        , ['Plan Estimate', 'estimate'        ]
+        , ['Notes'        , 'notesDisplay'    ]
+        ]
+      )
   )
 )
 
-// --------------------------------------------------------------Iterations ----
+// --------------------------------------------------------- Iteration Admin ---
 
 $template({name: 'iterations:admin:list', extend: 'admin:list'}
 , $block('headers'
-  , TH('Iteration name')
-  , TH('Release')
-  , TH('Start date')
-  , TH('End date')
+  , TH('Name')
+  , TH('Theme')
+  , TH('Start Date')
+  , TH('End Date')
+  , TH('State')
   )
 )
 
 $template({name: 'iterations:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
-  , TD('{{ item.release }}')
+  , TD('{{ item.themeDisplay }}')
   , TD('{{ item.startDateDisplay }}')
   , TD('{{ item.endDateDisplay }}')
+  , TD('{{ item.stateDisplay }}')
   )
 )
 
 $template({name: 'iterations:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
-  , TR(
-      TH('Iteration name')
-    , TD({colSpan: 3}, '{{ item.name }}')
-    )
-  , TR(
-      TH('Release')
-    , TD({colSpan: 3}, '{{ item.release }}')
-    )
-  , TR(
-      TH('Start date')
-    , TD('{{ item.startDateDisplay }}')
-    , TH('End date')
-    , TD('{{ item.endDateDisplay }}')
-    )
+  , section('General',
+        [ ['Name'         , 'name'            ]
+        , ['Theme'        , 'themeDisplay'    ]
+        , ['Start Date'   , 'startDateDisplay', 'End Date' , 'endDateDisplay']
+        , ['Project'      , 'project'         ]
+        , ['State'        , 'stateDisplay'    , 'Resources', 'resources'     ]
+        , ['Plan Estimate', 'estimate'        ]
+        , ['Notes'        , 'notesDisplay'    ]
+        ]
+      )
   )
 )
 
@@ -476,11 +613,12 @@ $template({name: 'iterations:admin:detail', extend: 'admin:detail'}
 
 $template({name: 'stories:admin:list', extend: 'admin:list'}
 , $block('headers'
-  , TH('Story name')
+  , TH('Name')
+  , TH('Release')
   , TH('Iteration')
   , TH('State')
   , TH('Blocked')
-  , TH('Planned')
+  , TH('Plan Est')
   , TH('Owner')
   )
 )
@@ -488,46 +626,39 @@ $template({name: 'stories:admin:list', extend: 'admin:list'}
 $template({name: 'stories:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
+  , TD('{{ item.release }}')
   , TD('{{ item.iteration }}')
   , TD('{{ item.stateDisplay }}')
   , TD('{{ item.blockedDisplay }}')
-  , TD('{{ item.planned }}')
+  , TD('{{ item.planEstimate }}')
   , TD('{{ item.owner }}')
   )
 )
 
 $template({name: 'stories:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
-  , TR(
-      TH('Story name')
-    , TD({colSpan: 3}, '{{ item.name }}')
-    )
-  , TR(
-      TH('Iteration')
-    , TD({colSpan: 3}, '{{ item.iteration }}')
-    )
-  , TR(
-      TH('Description')
-    , TD({colSpan: 3}, '{{ item.descriptionDisplay }}')
-    )
-  , TR(
-      TH('Owner')
-    , TD({colSpan: 3}, '{{ item.owner }}')
-    )
-  , TR(
-      TH('State')
-    , TD('{{ item.stateDisplay }}')
-    , TH('Blocked')
-    , TD('{{ item.blockedDisplay }}')
-    )
-  , TR(
-      TH('Planned')
-    , TD({colSpan: 3}, '{{ item.planned }}')
-    )
-  , TR(
-      TH('Notes')
-    , TD({colSpan: 3}, '{{ item.notesDisplay }}')
-    )
+  , section('General', [ ['ID'         , 'id'                ]
+                       , ['Name'       , 'name'              ]
+                       , ['Description', 'descriptionDisplay']
+                       , ['Owner'      , 'owner'             , 'Package', 'package']
+                       , ['Project'    , 'project'           ]
+                       ])
+
+  , section('Story',
+        [ ['Parent', 'parent'] ]
+      )
+
+  , section('Schedule',
+        [ ['State'   , 'stateDisplay', 'Blocked'  , 'blockedDisplay']
+        , ['Release' , 'release'     , 'Iteration', 'iteration'     ]
+        , ['Plan Est', 'planEstimate']
+        , ['Rank'    , 'rank'        ]
+        ]
+      )
+
+  , section('Notes',
+        [ ['Notes', 'notesDisplay'] ]
+      )
   )
 )
 
@@ -535,15 +666,15 @@ $template({name: 'stories:admin:detail', extend: 'admin:detail'}
 
 $template({name: 'tasks:admin:list', extend: 'admin:list'}
 , $block('headers'
-  , TH('Task name')
+  , TH('Name')
   , TH('Story')
   , TH('Release')
   , TH('Iteration')
   , TH('State')
   , TH('Blocked')
-  , TH('Est.')
-  , TH('To.')
-  , TH('Act.')
+  , TH('Estimate')
+  , TH('To Do')
+  , TH('Actuals')
   , TH('Owner')
   )
 )
@@ -552,135 +683,90 @@ $template({name: 'tasks:admin:listRow', extend: 'admin:listRow'}
 , $block('linkText', '{{ item.name }}')
 , $block('extraCells'
   , TD('{{ item.story }}')
-  , TD('{{ item.story.iteration.release }}')
+  , TD('{{ item.story.release }}')
   , TD('{{ item.story.iteration }}')
   , TD('{{ item.stateDisplay }}')
   , TD('{{ item.blockedDisplay }}')
-  , TD('{{ item.estimated }}')
+  , TD('{{ item.estimate }}')
   , TD('{{ item.todo }}')
-  , TD('{{ item.actual }}')
+  , TD('{{ item.actuals }}')
   , TD('{{ item.owner }}')
   )
 )
 
 $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
-  , TR(
-      TH('Task name')
-    , TD({colSpan: 3}, '{{ item.name }}')
-    )
-  , TR(
-      TH('Story')
-    , TD({colSpan: 3}, '{{ item.story }}')
-    )
-  , TR(
-      TH('Release')
-    , TD('{{ item.story.iteration.release }}')
-    , TH('Iteration')
-    , TD('{{ item.story.iteration }}')
-    )
-  , TR(
-      TH('Description')
-    , TD({colSpan: 3}, '{{ item.descriptionDisplay }}')
-    )
-  , TR(
-      TH('Owner')
-    , TD({colSpan: 3}, '{{ item.owner }}')
-    )
-  , TR(
-      TH('State')
-    , TD('{{ item.stateDisplay }}')
-    , TH('Blocked')
-    , TD('{{ item.blockedDisplay }}')
-    )
-  , TR(
-      TH('Estimated')
-    , TD('{{ item.estimated }}')
-    , TH('Actual')
-    , TD('{{ item.actual }}')
-    )
-  , TR(
-      TH('TODO')
-    , TD({colSpan: 3}, '{{ item.todo }}')
-    )
-  , TR(
-      TH('Notes')
-    , TD({colSpan: 3}, '{{ item.notesDisplay }}')
-    )
+  , section('General',
+        [ ['ID'         , 'id'                ]
+        , ['Name'       , 'name'              ]
+        , ['Description', 'descriptionDisplay']
+        , ['Owner'      , 'owner'             ]
+        , ['Project'    , 'getProject'        ]
+        ]
+      )
+
+  , section('Task',
+        [ ['State',    'stateDisplay', 'Blocked', 'blockedDisplay']
+        , ['Estimate', 'estimate',     'Actuals', 'actuals'       ]
+        , ['To Do',    'todo'        ]
+        , ['Story',    'story'       ]
+        , ['Rank',     'rank'        ]
+        ]
+      )
+
+  , section('Notes',
+        [ ['Notes', 'notesDisplay'] ]
+      )
   )
 )
 
-// ------------------------------------------------------- AppView Templates ---
+// ----------------------------------------------------- AdminView Templates ---
 
 $template('admin:header'
 , $if('modelName'
   , SPAN({click: $func('events.index'), 'class': 'link'}, 'Admin')
   , ' : '
-  , SPAN({click: $func('events.reset'), 'class': 'link'}, '{{ modelName }}')
+  , SPAN({click: $func('events.backToList'), 'class': 'link'}, '{{ modelName }}')
+  , $else('Admin')
   )
 )
 
 $template('admin:index'
-, TABLE(
-    THEAD(TR(
+, TABLE({'class': 'list'}
+  , THEAD(TR(
       TH('Model')
     ))
-  , TBODY($for('adminView in adminViews'
+  , TBODY($for('modelView in modelViews'
     , $cycle(['odd', 'even'], {as: 'rowClass', silent: true})
     , TR({'class': 'link {{ rowClass }}'}
-      , TD({click: $func('events.show'), 'data-index': '{{ forloop.counter0 }}'}
-        , $func('adminView.storage.model._meta.namePlural')
+      , TD({click: $func('events.select'), 'data-index': '{{ forloop.counter0 }}'}
+        , $func('modelView.storage.model._meta.name')
         )
       )
     ))
   )
 )
 
-}
+}}()
 
 // ============================================================= Sample Data ===
 
 !function() {
-
-var p1 = Projects.add(new Project({name: 'Project 1'}))
-  , p2 = Projects.add(new Project({name: 'Project 2'}))
-Projects.add(new Project({name: 'Project 3'}))
-var r1 = Releases.add(new Release({project: p1, name: 'Release 1'}))
-Releases.add(new Release({project: p1, name: 'Release 2'}))
-Releases.add(new Release({project: p2, name: 'Release 1'}))
-var i1 = Iterations.add(new Iteration(
-    { release: r1
-    , name: 'Iteration 1'
-    , startDate: new Date(2011, 7, 1)
-    , endDate: new Date(2011, 7, 28)
-    }
-  ))
-  , i2 = Iterations.add(new Iteration({release: r1, name: 'Iteration 2'}))
-var u1 = Users.add(new User({name: 'Alan Partridge', email: 'a@a.com', displayName: 'Alan', image: ''}))
-  , u2 = Users.add(new User({name: 'Bill Carr', email: 'b@b.com', displayName: 'Bill', image: ''}))
-var s1 = Stories.add(new Story(
-    { iteration: i1
-    , name: 'Story 1'
-    , description: 'Do some things.\n\nThen do other things.'
-    , owner: u1
-    , state: States.DEFINED
-    , planned: 45.0
-    }
-  ))
-Tasks.add(new Task(
-    { story: s1
-    , name: 'Task 1'
-    , description: 'Implement things and that.'
-    , owner: u2
-    , state: States.IN_PROGRESS
-    , estimated: 15
-    , todo: 10
-    , actual: 5.5
-    }
-  ))
-
+  var u1 = Users.add(new User({name: 'User 1', email: 'a@a.com', displayName: 'User 1', profileImage: 'http://jonathan.buchanan153.users.btopenworld.com/adventurer.png'}))
+    , u2 = Users.add(new User({name: 'User 2', email: 'b@b.com', displayName: 'User 2', profileImage: 'http://jonathan.buchanan153.users.btopenworld.com/kiwi.png'}))
+    , p1 = Projects.add(new Project({name: 'Project 1'}))
+    , p2 = Projects.add(new Project({name: 'Project 2'}))
+    , pa1 = Packages.add(new Package({name: 'Package 1'}))
+    , pa2 = Packages.add(new Package({name: 'Package 2'}))
+    , r1 = Releases.add(new Release({name: 'Release 1', startDate: new Date(2010, 5, 1), releaseDate: new Date(2010, 11, 16), project: p1, resources: 76.5, estimate: 54.0}))
+    , r2 = Releases.add(new Release({name: 'Release 2', startDate: new Date(2011, 1, 1), releaseDate: new Date(2011, 9, 16), project: p1, resources: 76.5, estimate: 54.0}))
+    , r3 = Releases.add(new Release({name: 'Release 1', startDate: new Date(2011, 3, 16), releaseDate: new Date(2012, 6, 1), project: p2, resources: 76.5, estimate: 54.0}))
+    , i1 = Iterations.add(new Iteration({name: 'Sprint 1', startDate: new Date(2010, 5, 1), endDate: new Date(2010, 6, 1), project: p1, resources: 76.5, estimate: 54.0}))
+    , i2 = Iterations.add(new Iteration({name: 'Sprint 2', startDate: new Date(2010, 6, 1), endDate: new Date(2010, 7, 1), project: p1, resources: 76.5, estimate: 54.0}))
+    , s1 = Stories.add(new Story({name: 'Story 1', project: p1, parent: null, state: Story.States.IN_PROGRESS, owner: u1, package: p1, release: r1, iteration: i1, planEstimate: 20.0, rank: 1.0}))
+    , t1 = Tasks.add(new Task({name: 'Task 1', state: Task.States.IN_PROGRESS, estimate: 15.0, actuals: 5.0, todo: 10.0, story: s1, owner: u1, rank: 2.0}))
 }()
 
 window.onload = function() {
-  AppViews.init()
+  AdminViews.init()
 }

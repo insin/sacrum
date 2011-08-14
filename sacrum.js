@@ -154,9 +154,9 @@ extend(forms.ModelInterface, {
 
 /**
  * Base constructor for objects containing functions which implement display and
- * control logic. Generally, views are instantiated using Views.create - you
+ * control logic. Generally, views are instantiated using Views.extend - you
  * shouldn't need to use this contructor directly unless you're writing a
- * specialised base constructor, such as AdminViews.
+ * specialised base constructor, such as ModelAdminViews.
  *
  * The base Views object provides functionality which expects the following
  * instance attributes:
@@ -180,7 +180,7 @@ function Views(attrs) {
 }
 
 /**
- * Tracks views which have been created.
+ * Tracks views which have been created using Views.extend.
  */
 Views._created = []
 
@@ -199,8 +199,8 @@ Views.initAll = function() {
  * Creates a new object which extends Views, with the given attributes.
  * @param {Object} attrs instance attributes.
  */
-Views.create = function(attrs) {
-  console.log('Views.create', attrs.name)
+Views.extend = function(attrs) {
+  console.log('Views.extend', attrs.name)
   var F = function(attrs) {
     Views.call(this, attrs)
   }
@@ -220,13 +220,14 @@ Views.create = function(attrs) {
  */
 Views.prototype.render = function(templateName, context, events) {
   if (events) {
-    for (var e in events) {
-      if (events[e] == null) {
-        this.warn('Event ' + e + ', for use with ' + templateName +
-                  ', is ' + events[e] + '.')
+    for (var name in events) {
+      var event = events[name]
+      if (event == null) {
+        this.warn('Event ' + name + ', for use with ' + templateName +
+                  ', is ' + event + '.')
       }
       else {
-        events[e] = bind(events[e], this)
+        events[name] = bind(event, this)
       }
     }
     context.events = events
@@ -249,26 +250,27 @@ Views.prototype.log = function(message) {
 }
 
 /**
- * Logs a message with this Views' name.
+ * Logs a warning message with this Views' name.
  */
 Views.prototype.warn = function(message) {
   console.warn(this.name, message)
 }
 
-// -------------------------------------------------------------- AdminViews ---
+// --------------------------------------------------------- ModelAdminViews ---
 
 /**
  * Views which take care of some of the repetitive work involved in creating
- * basic CRUD functionality. This specialised version of Views expects to find
- * the following instance attributes:
+ * basic CRUD functionality for a particular Model. This specialised version of
+ * Views expects to find the following instance attributes:
  *
  *    namespace
  *       Unique namespace for the instance - used in base CRUD templates to
  *       ensure created element ids are unique and when looking up templates
  *       which override the base templates.
  *
- *    elementId
- *       The id of the elements in which content should be displayed.
+ *    elementId (Optional)
+ *       The id of the elements in which content should be displayed, if
+ *       appropriate.
  *
  *    storage
  *       A Storage object used to create, retrieve, update and delete Model
@@ -281,21 +283,22 @@ Views.prototype.warn = function(message) {
  * @constructor
  * @param {Object} attrs instance attributes.
  */
-function AdminViews(attrs) {
+function ModelAdminViews(attrs) {
   Views.call(this, attrs)
 }
-inherits(AdminViews, Views)
+inherits(ModelAdminViews, Views)
 
 /**
- * Creates a new object which extends AdminViews, with the given attributes.
+ * Creates a new object which extends ModelAdminViews, with the given
+ * attributes.
  * @param {Object} attrs instance attributes.
  */
-AdminViews.create = function(attrs) {
-  console.log('AdminViews.create', attrs.name)
+ModelAdminViews.extend = function(attrs) {
+  console.log('AdminViews.extend', attrs.name)
   var F = function(attrs) {
-    AdminViews.call(this, attrs)
+    ModelAdminViews.call(this, attrs)
   }
-  inherits(F, AdminViews)
+  inherits(F, ModelAdminViews)
   var views = new F(attrs)
   // Push the new views to the base Views constructor so they will have their
   // init method called by Views.initAll.
@@ -303,8 +306,8 @@ AdminViews.create = function(attrs) {
   return views
 }
 
-// AdminViews default implementation
-extend(AdminViews.prototype, {
+// ModelAdminViews default implementation
+extend(ModelAdminViews.prototype, {
   /**
    * Overrides render to pass in template variables which are required for CRUD
    * templates.
@@ -318,13 +321,14 @@ extend(AdminViews.prototype, {
   }
 
   /**
-   * Finds the content element for this AdminViews and displays a list of Model
-   * instances by default.
+   * Finds the content element for this ModelAdminViews and displays a list of
+   * Model instances by default.
    */
 , init: function() {
     this.log('init')
-    this.el = document.getElementById(this.elementId)
-    this.list()
+    if (this.elementId) {
+      this.el = document.getElementById(this.elementId)
+    }
   }
 
   /**
@@ -459,7 +463,7 @@ extend(AdminViews.prototype, {
 
 with (DOMBuilder.template) {
 
-// ---------------------------------------------------- AdminViews Templates ---
+// ----------------------------------------------- ModelAdminViews Templates ---
 
 function buttonSpacer(text) {
   return DOMBuilder.template.SPAN({'class': 'spacer'}, text || ' or ')
@@ -467,10 +471,10 @@ function buttonSpacer(text) {
 
 $template('admin:list'
 , $block('itemTable'
-  , TABLE(
-      THEAD(TR(
+  , TABLE({'class': 'list'}
+    , THEAD(TR(
         $block('headers'
-        , TH('Item')
+        , TH('{{ model.name }}')
         )
       ))
     , TBODY($for('item in items'
@@ -481,14 +485,19 @@ $template('admin:list'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , SPAN({click: $func('events.add'), 'class': 'button'}, 'Add {{ model.name }}')
+    , SPAN({click: $func('events.add'), 'class': 'button'}
+      , 'Add {{ model.name }}'
+      )
     )
   )
 )
 
 $template('admin:listRow'
 , TR({id: '{{ ns }}-{{ item.id }}', 'class': '{{ rowClass }}'}
-  , TD({click: $func('events.select'), 'data-id': '{{ item.id }}', 'class': 'link'}
+  , TD({ click: $func('events.select')
+       , 'data-id': '{{ item.id }}'
+       , 'class': 'link'
+       }
     , $block('linkText', '{{ item }}')
     )
   , $block('extraCells')
@@ -501,7 +510,7 @@ $template('admin:detail'
   , TABLE(TBODY(
       $block('detailRows'
       , TR(
-          TH('Item')
+          TH('{{ model.name }}')
         , TD('{{ item }}')
         )
       )
@@ -522,7 +531,11 @@ $template('admin:add'
     , $var('form.asTable')
     ))
   , DIV({'class': 'controls'}
-    , INPUT({'type': 'submit', value: 'Add {{ model.name }}', click: $func('events.submit'), 'class': 'add'})
+    , INPUT({ click: $func('events.submit')
+            , 'type': 'submit'
+            , value: 'Add {{ model.name }}'
+            , 'class': 'add'
+            })
     , buttonSpacer()
     , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
     )
@@ -530,12 +543,19 @@ $template('admin:add'
 )
 
 $template('admin:edit'
-, FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/{{ item.id }}/edit/'}
+, FORM({ id: '{{ ns }}Form'
+       , method: 'POST'
+       , action: '/{{ ns }}/{{ item.id }}/edit/'
+       }
   , TABLE(TBODY({id: '{{ ns }}FormBody'}
     , $var('form.asTable')
     ))
   , DIV({'class': 'controls'}
-    , INPUT({type: 'submit', value: 'Edit {{ model.name }}', click: $func('events.submit'), 'class': 'edit'})
+    , INPUT({ click: $func('events.submit')
+            , type: 'submit'
+            , value: 'Edit {{ model.name }}'
+            , 'class': 'edit'
+            })
     , buttonSpacer()
     , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
     )
@@ -546,7 +566,11 @@ $template('admin:delete'
 , H2('Confirm Deletion')
 , P('Are you sure you want to delete the {{ model.name }} "{{ item }}"?')
 , DIV({'class': 'controls'}
-  , INPUT({type: 'submit', value: 'Delete {{ model.name }}', click: $func('events.confirmDelete'), 'class': 'delete'})
+  , INPUT({ click: $func('events.confirmDelete')
+          , type: 'submit'
+          , value: 'Delete {{ model.name }}'
+          , 'class': 'delete'
+          })
   , buttonSpacer()
   , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
   )
