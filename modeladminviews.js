@@ -218,6 +218,16 @@ extend(ModelAdminViews.prototype, {
 
 var template = DOMBuilder.template
 
+function detailColumns(options) {
+  options = extend({width: '110px', columns: 2}, options || {})
+  var cols = []
+  for (var i = 0; i < options.columns; i++) {
+    cols.push(template.COL({width: options.width}))
+    cols.push(template.COL())
+  }
+  return template.COLGROUP(cols)
+}
+
 function buttonSpacer(text) {
   return template.SPAN({'class': 'spacer'}, text || ' or ')
 }
@@ -260,14 +270,15 @@ $template('admin:listRow'
 $template('admin:detail'
 , $block('top')
 , $block('detail'
-  , TABLE(TBODY(
-      $block('detailRows'
+  , TABLE({'class': 'detail'}
+    , detailColumns()
+    , TBODY($block('detailRows'
       , TR(
-          TH('{{ model.name }}')
+          TH('{{ model.name }}:')
         , TD('{{ item }}')
         )
-      )
-    ))
+      ))
+    )
   )
 , DIV({'class': 'controls'}
   , $block('controls'
@@ -280,9 +291,12 @@ $template('admin:detail'
 
 $template('admin:add'
 , FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/add/'}
-  , TABLE(TBODY({id: '{{ ns }}FormBody'}
-    , $var('form.asTable')
-    ))
+  , TABLE({'class': 'form detail'}
+    , detailColumns({columns: 1})
+    , TBODY({id: '{{ ns }}FormBody'}
+      , $var('form.asTable')
+      )
+    )
   , DIV({'class': 'controls'}
     , INPUT({ click: $func('events.submit')
             , 'type': 'submit'
@@ -300,9 +314,12 @@ $template('admin:edit'
        , method: 'POST'
        , action: '/{{ ns }}/{{ item.id }}/edit/'
        }
-  , TABLE(TBODY({id: '{{ ns }}FormBody'}
-    , $var('form.asTable')
-    ))
+  , TABLE({'class': 'form detail'}
+    , detailColumns({columns: 1})
+    , TBODY({id: '{{ ns }}FormBody'}
+      , $var('form.asTable')
+      )
+    )
   , DIV({'class': 'controls'}
     , INPUT({ click: $func('events.submit')
             , type: 'submit'

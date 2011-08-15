@@ -1,5 +1,4 @@
-body { font-family: arial, helvetica, sans-serif; }
-h2 { padding-bottom: .5em; border-bottom: 1px solid black; }
+body { font-family: arial, helvetica, sans-serif; font-size: 14px; }
 .controls { padding: .5em 0; margin-top: 1em; }
 .link { cursor: pointer; color: blue; text-decoration: underline; }
 .controls .button, .controls input { cursor: pointer; color: blue; font-weight: bold; padding: .3em .6em; border: 1px solid black; border-radius: .5em; background-color: white; font-size: 1em; }
@@ -12,13 +11,18 @@ h2 { padding-bottom: .5em; border-bottom: 1px solid black; }
 .controls .add:hover { color: white; background-color: green; }
 .controls .delete:hover { color: white; background-color: red; }
 .controls .spacer { margin-left: .3em; margin-right: .3em; }
-table { border-spacing: 0; }
+/* Tables - common */
+table { border-spacing: 0; min-width: 66%; }
 th, td { padding: 5px 10px; }
-tr.odd td { background-color: white; }
-tr.even td { background-color: #f3f3f3; }
-thead th { text-align: left; background-color: black; color: white; }
-tbody th { text-align: right; border-bottom: 1px solid #fff; vertical-align: top; font-weight: normal; background-color: #e5e5e5; color: #000; border-right: 1px solid gray; }
-table.list td { border-bottom: 1px solid gray; }
-tr.section td { font-weight: bold; background-color: black; color: white; }
+/* Tables - list view */
+table.list tr.odd td { }
+table.list tr.even td { background-color: #f9fbff; }
+table.list thead th { text-align: left; background-color: #69f; color: white; }
+table.list td { border-bottom: 1px solid #69f; }
+/* Tables - detail view/form layout */
+table.detail { border: 1px solid #36f; border-top-width: 3px; }
+tr.section td { font-weight: bold; background-color: #cdf; border-bottom: 1px solid white; }
+tbody th { text-align: right; border-bottom: 1px solid white; vertical-align: top; font-weight: normal; background-color: #f9f9ff; color: black; border-right: 1px solid #cdf; padding: 5px; }
+/* Validation errors */
 ul.errorlist { margin: 0; padding: 0; list-style: none; }
 ul.errorlist li { margin-bottom: 5px; color: red; font-weight: bold; }
