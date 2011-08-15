@@ -249,22 +249,34 @@ var Projects = new Storage(Project)
 // =================================================================== Forms ===
 
 var UserForm = forms.Form({
-  name: forms.CharField({maxLength: 255})
+  requiredCssClass: 'required'
+, errorCssClass: 'error'
+
+, name: forms.CharField({maxLength: 255})
 , email: forms.EmailField()
 , displayName: forms.CharField({maxLength: 50})
 , profileImage: forms.URLField({required: false})
 })
 
 var ProjectForm = forms.Form({
-  name: forms.CharField({maxLength: 50})
+  requiredCssClass: 'required'
+, errorCssClass: 'error'
+
+, name: forms.CharField({maxLength: 50})
 })
 
 var PackageForm = forms.Form({
-  name: forms.CharField({maxLength: 50})
+  requiredCssClass: 'required'
+, errorCssClass: 'error'
+
+, name: forms.CharField({maxLength: 50})
 })
 
 var ReleaseForm = forms.Form({
-  name: forms.CharField({maxLength: 50})
+  requiredCssClass: 'required'
+, errorCssClass: 'error'
+
+, name: forms.CharField({maxLength: 50})
 , theme: forms.CharField({required: false, widget: forms.Textarea})
 , startDate: forms.DateField()
 , releaseDate: forms.DateField()
@@ -284,7 +296,10 @@ var ReleaseForm = forms.Form({
 })
 
 var IterationForm = forms.Form({
-  name: forms.CharField({maxLength: 50})
+  requiredCssClass: 'required'
+, errorCssClass: 'error'
+
+, name: forms.CharField({maxLength: 50})
 , theme: forms.CharField({required: false, widget: forms.Textarea})
 , startDate: forms.DateField()
 , endDate: forms.DateField()
@@ -304,7 +319,10 @@ var IterationForm = forms.Form({
 })
 
 var StoryForm = forms.Form({
-  name: forms.CharField({maxLength: 255})
+  requiredCssClass: 'required'
+, errorCssClass: 'error'
+
+, name: forms.CharField({maxLength: 255})
 , description: forms.CharField({widget: forms.Textarea, required: false})
 , owner: forms.ModelChoiceField(Users.query(), {required: false})
 , package: forms.ModelChoiceField(Packages.query(), {required: false})
@@ -320,7 +338,10 @@ var StoryForm = forms.Form({
 })
 
 var TaskForm = forms.Form({
-  name: forms.CharField({maxLength: 255})
+  requiredCssClass: 'required'
+, errorCssClass: 'error'
+
+, name: forms.CharField({maxLength: 255})
 , description: forms.CharField({required: false, widget: forms.Textarea})
 , owner: forms.ModelChoiceField(Users.query(), {required: false})
 , state: forms.ChoiceField({choices: Task.StateChoices, initial: Task.States.DEFINED})
