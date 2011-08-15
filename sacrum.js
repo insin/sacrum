@@ -56,6 +56,323 @@ function extend(dest, src) {
   return dest
 }
 
+function isArray(o) {
+  return Object.prototype.toString.call(o) == '[object Array]'
+}
+
+function isFunction(o) {
+  return Object.prototype.toString.call(o) == '[object Function]'
+}
+
+function isRegExp(o) {
+  return Object.prototype.toString.call(o) == '[object RegExp]'
+}
+
+function isString(o) {
+  return Object.prototype.toString.call(o) == '[object String]'
+}
+
+function findAll(re, str, flags) {
+  if (!isRegExp(re)) {
+    re = new RegExp(re, flags)
+  }
+  var match = null
+    , matches = []
+  while ((match = re.exec(str)) !== null) {
+    switch (match.length) {
+      case 1:
+        matches.push(match[0])
+        break
+      case 2:
+        matches.push(match[1])
+        break
+      default:
+        matches.push(match.slice(1))
+    }
+    if (!re.global) {
+      break
+    }
+  }
+  return matches
+}
+
+// Simple string formatting
+var formatRE = /%s/g
+  , formatObjRE = /{(\w+)}/g
+function format(s) {
+  return formatArr(s, Array.prototype.slice.call(arguments, 1))
+}
+function formatArr(s, args) {
+  var i = 0
+  return s.replace(formatRE, function() { return args[i++] })
+}
+function formatObj(s, obj) {
+  return s.replace(formatObjRE, function(m, p) { return obj[p] })
+}
+
+// ==================================================================== URLs ===
+
+var namedParamRE = /:([\w\d]+)/g
+  , escapeRE = /[-[\]{}()*+?.,\\^$|#\s]/g
+
+function Resolver404(path, tried) {
+  this.path = path
+  this.tried = tried || null
+}
+Resolver404.prototype.toString = function() {
+  return 'Resolver404 on ' + this.path
+}
+
+function NoReverseMatch(message) {
+  this.message = message
+}
+NoReverseMatch.prototype.toString = function() {
+  return 'NoReverseMatch: ' + this.message
+}
+
+
+// ---------------------------------------------------------- Implementation ---
+
+var URLConf = {
+  patterns: null
+, resolver: null
+}
+
+function getResolver() {
+  if (URLConf.resolver === null) {
+    URLConf.resolver = new URLResolver('/', URLConf.patterns)
+  }
+  return URLConf.resolver
+}
+
+/**
+ * Converts a url pattern to source for a RegExp which matches the specified URL
+ * fragment, capturing any named parameters.
+ *
+ * Also stores the names of parameters in the call context object for reference
+ * when reversing.
+ */
+function patternToRE(pattern) {
+  pattern = pattern.replace(escapeRE, '\\$&')
+  // Store the names of any named parameters
+  this.namedParams = findAll(namedParamRE, pattern)
+  if (this.namedParams.length) {
+    // The pattern has some named params, so replace them with appropriate
+    // capturing groups.
+    pattern = pattern.replace(namedParamRE, '([^\/]*)')
+  }
+  return pattern
+}
+
+/**
+ * Associates a URL pattern with a callback function, generating a RegExp which
+ * will match the pattern and capture named parameters.
+ */
+function URLPattern(pattern, callback, name) {
+  this.pattern = pattern
+  // Only full matches are accepted when resolving, so anchor to start and end
+  // of the input.
+  this.regex = new RegExp('^' + patternToRE.call(this, pattern) + '$', 'g')
+
+  if (isFunction(callback)) {
+    this.callback = callback
+  }
+  else {
+    this.callback = null
+    this._callbackName = callback
+  }
+
+  this.name = name
+}
+
+URLPattern.prototype.toString = function() {
+  return formatObj('[object URLPattern] <{name} "{pattern}">', this)
+}
+
+URLPattern.prototype.addContext = function(context) {
+  if (!context || !this._callbackName) {
+    return
+  }
+  this.callback = bind(context[this._callbackName], context)
+}
+
+URLPattern.prototype.resolve = function(path) {
+  var match = this.regex.exec(path)
+  if (match) {
+    return new ResolverMatch(this.callback, args = match.slice(1), this.name)
+  }
+}
+
+/**
+ * Resolves a list of URL patterns when a root URL pattern is matched.
+ */
+function URLResolver(pattern, urlPatterns) {
+  this.pattern = pattern
+  // Resolvers start by matching a prefix, so anchor to start of the input
+  this.regex = new RegExp('^' + patternToRE.call(this, pattern), 'g')
+  this.urlPatterns = urlPatterns
+  this.reverseLookups = null
+}
+
+URLResolver.prototype.toString = function() {
+  return formatObj('[object URLResolver] <{pattern}>', this)
+}
+
+/**
+ * Populates expected argument and pattern information for use when reverse
+ * URL lookups are requested.
+ */
+URLResolver.prototype._populate = function() {
+  var lookups = {}
+    , urlPattern
+    , pattern
+  for (var i = this.urlPatterns.length - 1; i >= 0; i--) {
+    urlPattern = this.urlPatterns[i]
+    pattern = urlPattern.pattern
+    if (urlPattern instanceof URLResolver) {
+      var reverseLookups = urlPattern.getReverseLookups()
+      for (var name in reverseLookups) {
+        var revLookup = reverseLookups[name]
+          , revLookupMatches = revLookup[0]
+          , revLookupPattern = revLookup[1]
+        lookups[name] = [this.namedParams.concat(revLookupMatches[0]),
+                         pattern + revLookupPattern]
+      }
+    }
+    else if (urlPattern.name !== null) {
+      lookups[urlPattern.name] = [urlPattern.namedParams, pattern]
+    }
+  }
+  this.reverseLookups = lookups
+}
+
+URLResolver.prototype.getReverseLookups = function() {
+  if (this.reverseLookups === null) {
+    this._populate()
+  }
+  return this.reverseLookups
+}
+
+/**
+ * Resolves a view function to handle the given path.
+ */
+URLResolver.prototype.resolve = function(path) {
+  var tried = []
+    , match = this.regex.exec(path)
+  if (match) {
+    var args = match.slice(1)
+      , subPath = path.substring(this.regex.lastIndex)
+      , urlPattern
+      , subMatch
+    for (var i = 0, l = this.urlPatterns.length; i < l; i++) {
+      urlPattern = this.urlPatterns[i]
+      try {
+        subMatch = urlPattern.resolve(subPath)
+        if (subMatch) {
+          // Add any arguments which were captured by this instance's own path
+          // RegExp.
+          subMatch.args = args.concat(subMatch.args)
+          return subMatch
+        }
+        tried.push([urlPattern])
+      }
+      catch (e) {
+        if (!(e instanceof Resolver404)) throw e
+        var subTried = e.tried
+        if (subTried !== null) {
+          for (var j = 0, k = subTried.length; j < k; j++) {
+            tried.push([urlPattern, subTried[j]])
+          }
+        }
+        else {
+          tried.push([urlPattern])
+        }
+      }
+    }
+    throw new Resolver404(subPath, tried)
+  }
+  throw new Resolver404(path)
+}
+
+URLResolver.prototype.reverse = function(name, args) {
+  var lookup = this.getReverseLookups()[name]
+  if (lookup) {
+    var expectedArgs = lookup[0]
+      , pattern = lookup[1]
+    if (args.length != expectedArgs.length) {
+      throw new NoReverseMatch(format(
+          'URL pattern named "%s" expects %s argument%s, but got %s: [%s]'
+        , name
+        , expectedArgs.length
+        , expectedArgs.length == 1 ? '' : 's'
+        , args.length
+        , args.join(', ')
+        ))
+    }
+    return format(pattern.replace(namedParamRE, '%s'), args)
+  }
+  throw new NoReverseMatch(format(
+      'Reverse for "%s" with arguments [%s] not found.'
+    , name
+    , args.join(', ')
+    ))
+}
+
+function ResolverMatch(func, args, urlName) {
+  this.func = func
+  this.args = args
+  this.urlName = urlName
+}
+
+// -------------------------------------------------------------- Public API ---
+
+function patterns(context) {
+  var args = Array.prototype.slice.call(arguments, 1)
+    , patternList = []
+    , pattern
+  for (var i = 0, l = args.length; i < l; i++) {
+    pattern = args[i]
+    if (isArray(pattern)) {
+      pattern = url
+    }
+    else if (pattern instanceof URLPattern) {
+      pattern.addContext(context)
+    }
+    patternList.push(pattern)
+  }
+  return patternList
+}
+
+function include(patterns) {
+  return patterns
+}
+
+function url(pattern, view, name) {
+  if (isArray(view)) {
+    // For include() processing
+    return new URLResolver(pattern, view)
+  }
+  else {
+    if (isString(view)) {
+      if (!view) {
+        throw new Error('Empty URL pattern view name not permitted (for pattern ' + pattern + ')')
+      }
+    }
+    return new URLPattern(pattern, view, name)
+  }
+}
+
+function resolve(path) {
+  return getResolver().resolve(path)
+}
+
+function reverse(name, args, prefix) {
+  args = args || []
+  prefix = prefix || '/'
+  var resolver = getResolver()
+  return format('%s%s', prefix , resolver.reverse(name, args))
+}
+
 // ================================================================== Models ===
 
 /**
@@ -223,8 +540,8 @@ Views.prototype.render = function(templateName, context, events) {
     for (var name in events) {
       var event = events[name]
       if (event == null) {
-        this.warn('Event ' + name + ', for use with ' + templateName +
-                  ', is ' + event + '.')
+        this.warn(format('Event %s, for use with %s, is %s',
+                         name, templateName, event))
       }
       else {
         events[name] = bind(event, this)
@@ -254,326 +571,4 @@ Views.prototype.log = function(message) {
  */
 Views.prototype.warn = function(message) {
   console.warn(this.name, message)
-}
-
-// --------------------------------------------------------- ModelAdminViews ---
-
-/**
- * Views which take care of some of the repetitive work involved in creating
- * basic CRUD functionality for a particular Model. This specialised version of
- * Views expects to find the following instance attributes:
- *
- *    namespace
- *       Unique namespace for the instance - used in base CRUD templates to
- *       ensure created element ids are unique and when looking up templates
- *       which override the base templates.
- *
- *    elementId (Optional)
- *       The id of the elements in which content should be displayed, if
- *       appropriate.
- *
- *    storage
- *       A Storage object used to create, retrieve, update and delete Model
- *       instances.
- *
- *    form
- *       A Form used to take and validate user input when creating and updating
- *       Model instances.
- *
- * @constructor
- * @param {Object} attrs instance attributes.
- */
-function ModelAdminViews(attrs) {
-  Views.call(this, attrs)
-}
-inherits(ModelAdminViews, Views)
-
-/**
- * Creates a new object which extends ModelAdminViews, with the given
- * attributes.
- * @param {Object} attrs instance attributes.
- */
-ModelAdminViews.extend = function(attrs) {
-  console.log('AdminViews.extend', attrs.name)
-  var F = function(attrs) {
-    ModelAdminViews.call(this, attrs)
-  }
-  inherits(F, ModelAdminViews)
-  var views = new F(attrs)
-  // Push the new views to the base Views constructor so they will have their
-  // init method called by Views.initAll.
-  Views._created.push(views)
-  return views
-}
-
-// ModelAdminViews default implementation
-extend(ModelAdminViews.prototype, {
-  /**
-   * Overrides render to pass in template variables which are required for CRUD
-   * templates.
-   */
-  render: function(templateName, context, events) {
-    extend(context, {
-      ns: this.namespace
-    , model: this.storage.model._meta
-    })
-    return Views.prototype.render.call(this, templateName, context, events)
-  }
-
-  /**
-   * Finds the content element for this ModelAdminViews and displays a list of
-   * Model instances by default.
-   */
-, init: function() {
-    this.log('init')
-    if (this.elementId) {
-      this.el = document.getElementById(this.elementId)
-    }
-  }
-
-  /**
-   * Displays a list of Model instances.
-   */
-, list: function() {
-    this.log('list')
-    this.display([this.namespace + ':admin:list', 'admin:list']
-      , { items: this.storage.all()
-        , rowTemplates: [this.namespace + ':admin:listRow', 'admin:listRow']
-        }
-      , { select: this.select
-        , add: this.add
-        }
-      )
-  }
-
-  /**
-   * Selects a Model instance and displays its details.
-   */
-, select: function(e) {
-    this.log('select')
-    var id = e.target.getAttribute('data-id')
-    this.selectedItem = this.storage.get(id)
-    this.detail()
-  }
-
-  /**
-   * Displays the selected Model's details.
-   */
-, detail: function() {
-    this.log('detail')
-    this.display([this.namespace + ':admin:detail', 'admin:detail']
-      , { item: this.selectedItem }
-      , { edit: this.edit
-        , preDelete: this.preDelete
-        }
-      )
-  }
-
-  /**
-   * Displays the add Form.
-   */
-, add: function() {
-    this.log('add')
-    this.display([this.namespace + ':admin:add', 'admin:add']
-      , { form: this.form() }
-      , { submit: this.createItem
-        , cancel: this.list
-        }
-      )
-  }
-
-  /**
-   * Validates user input and either creates a new Model instance or redisplays
-   * the form with errors.
-   */
-, createItem: function(e) {
-    this.log('createItem')
-    e.preventDefault()
-    var form = this.form({ data: forms.formData(this.namespace + 'Form') })
-    if (form.isValid()) {
-      this.storage.add(new this.storage.model(form.cleanedData))
-      this.list()
-    }
-    else {
-      replace(this.namespace + 'FormBody', form.asTable())
-    }
-  }
-
-  /**
-   * Displays the edit Form, populated with the selected Model instance's data.
-   */
-, edit: function() {
-    this.log('edit')
-    this.display([this.namespace + ':admin:edit', 'admin:edit']
-      , { item: this.selectedItem
-        , form: this.form({ initial: this.selectedItem })
-        }
-      , { submit: this.updateItem
-        , cancel: this.detail
-        }
-      )
-  }
-
-  /**
-   * Validates user input and either updates the selected Model instance or
-   * redisplays the form with errors.
-   */
-, updateItem: function(e) {
-    this.log('updateItem')
-    e.preventDefault()
-    var form = this.form({ data: forms.formData(this.namespace + 'Form')
-                         , initial: this.selectedItem
-                         })
-    if (form.isValid()) {
-      extend(this.selectedItem, form.cleanedData)
-      this.selectedItem = null
-      this.list()
-    }
-    else {
-      replace(this.namespace + 'FormBody', form.asTable())
-    }
-  }
-
-  /**
-   * Displays the Confirm Deletion screen for the selected Model instance.
-   */
-, preDelete: function() {
-    this.log('preDelete')
-    this.display([this.namespace + ':admin:delete', 'admin:delete']
-      , { item: this.selectedItem }
-      , { confirmDelete: this.confirmDelete
-        , cancel: this.detail
-        }
-      )
-  }
-
-  /**
-   * Deletes the selected Model instance and returns to the list display.
-   */
-, confirmDelete: function(e) {
-    this.log('confirmDelete')
-    e.preventDefault()
-    this.storage.remove(this.selectedItem)
-    this.selectedItem = null
-    this.list()
-  }
-})
-
-// =============================================================== Templates ===
-
-with (DOMBuilder.template) {
-
-// ----------------------------------------------- ModelAdminViews Templates ---
-
-function buttonSpacer(text) {
-  return DOMBuilder.template.SPAN({'class': 'spacer'}, text || ' or ')
-}
-
-$template('admin:list'
-, $block('itemTable'
-  , TABLE({'class': 'list'}
-    , THEAD(TR(
-        $block('headers'
-        , TH('{{ model.name }}')
-        )
-      ))
-    , TBODY($for('item in items'
-      , $cycle(['odd', 'even'], {as: 'rowClass', silent: true})
-      , $include($var('rowTemplates'))
-      ))
-    )
-  )
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.add'), 'class': 'button'}
-      , 'Add {{ model.name }}'
-      )
-    )
-  )
-)
-
-$template('admin:listRow'
-, TR({id: '{{ ns }}-{{ item.id }}', 'class': '{{ rowClass }}'}
-  , TD({ click: $func('events.select')
-       , 'data-id': '{{ item.id }}'
-       , 'class': 'link'
-       }
-    , $block('linkText', '{{ item }}')
-    )
-  , $block('extraCells')
-  )
-)
-
-$template('admin:detail'
-, $block('top')
-, $block('detail'
-  , TABLE(TBODY(
-      $block('detailRows'
-      , TR(
-          TH('{{ model.name }}')
-        , TD('{{ item }}')
-        )
-      )
-    ))
-  )
-, DIV({'class': 'controls'}
-  , $block('controls'
-    , SPAN({click: $func('events.edit'), 'class': 'button'}, 'Edit')
-    , buttonSpacer()
-    , SPAN({click: $func('events.preDelete'), 'class': 'button'}, 'Delete')
-    )
-  )
-)
-
-$template('admin:add'
-, FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/add/'}
-  , TABLE(TBODY({id: '{{ ns }}FormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({ click: $func('events.submit')
-            , 'type': 'submit'
-            , value: 'Add {{ model.name }}'
-            , 'class': 'add'
-            })
-    , buttonSpacer()
-    , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
-    )
-  )
-)
-
-$template('admin:edit'
-, FORM({ id: '{{ ns }}Form'
-       , method: 'POST'
-       , action: '/{{ ns }}/{{ item.id }}/edit/'
-       }
-  , TABLE(TBODY({id: '{{ ns }}FormBody'}
-    , $var('form.asTable')
-    ))
-  , DIV({'class': 'controls'}
-    , INPUT({ click: $func('events.submit')
-            , type: 'submit'
-            , value: 'Edit {{ model.name }}'
-            , 'class': 'edit'
-            })
-    , buttonSpacer()
-    , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
-    )
-  )
-)
-
-$template('admin:delete'
-, H2('Confirm Deletion')
-, P('Are you sure you want to delete the {{ model.name }} "{{ item }}"?')
-, DIV({'class': 'controls'}
-  , INPUT({ click: $func('events.confirmDelete')
-          , type: 'submit'
-          , value: 'Delete {{ model.name }}'
-          , 'class': 'delete'
-          })
-  , buttonSpacer()
-  , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
-  )
-)
-
 }

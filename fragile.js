@@ -408,8 +408,6 @@ var AdminViews = Views.extend({
         this.modelViews.push(views)
       }
     }
-
-    this.index()
   }
 
   /**
@@ -449,6 +447,22 @@ var AdminViews = Views.extend({
    */
 , backToList: function() {
     this.selectedModelViews.list()
+  }
+
+, getURLs: function() {
+    var urlPatterns =
+        patterns(this
+        , url('', 'index', 'admin_index')
+        )
+    for (var i = 0, l = this.modelViews.length; i < l; i++) {
+      var modelViews = this.modelViews[i]
+      urlPatterns = urlPatterns.concat(
+          patterns(null
+          , url(modelViews.namespace + '/', include(modelViews.getURLs()))
+          )
+        )
+    }
+    return urlPatterns
   }
 })
 
@@ -769,4 +783,9 @@ $template('admin:index'
 
 window.onload = function() {
   AdminViews.init()
+  URLConf.patterns = AdminViews.getURLs()
+  // TODO Invoke navigation to start URL instead
+  AdminViews.index()
+  console.info(resolve('/projects/'))
+  console.info(reverse('admin_users_edit', [123]))
 }
