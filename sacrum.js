@@ -31,6 +31,7 @@ function bind(fn, ctx) {
     }
     return fn.apply(ctx, arguments)
   }
+  f.func = fn
   f.boundTo = ctx
   return f
 }
@@ -176,10 +177,11 @@ function URLPattern(pattern, callback, name) {
 
   if (isFunction(callback)) {
     this.callback = callback
+    this.callbackName = null
   }
   else {
     this.callback = null
-    this._callbackName = callback
+    this.callbackName = callback
   }
 
   this.name = name
@@ -190,16 +192,16 @@ URLPattern.prototype.toString = function() {
 }
 
 URLPattern.prototype.addContext = function(context) {
-  if (!context || !this._callbackName) {
+  if (!context || !this.callbackName) {
     return
   }
-  this.callback = bind(context[this._callbackName], context)
+  this.callback = bind(context[this.callbackName], context)
 }
 
 URLPattern.prototype.resolve = function(path) {
   var match = this.regex.exec(path)
   if (match) {
-    return new ResolverMatch(this.callback, args = match.slice(1), this.name)
+    return new ResolverMatch(this.callback, match.slice(1), this.name)
   }
 }
 
@@ -343,10 +345,6 @@ function patterns(context) {
   return patternList
 }
 
-function include(patterns) {
-  return patterns
-}
-
 function url(pattern, view, name) {
   if (isArray(view)) {
     // For include() processing
@@ -360,6 +358,10 @@ function url(pattern, view, name) {
     }
     return new URLPattern(pattern, view, name)
   }
+}
+
+function include(patterns) {
+  return patterns
 }
 
 function resolve(path) {
