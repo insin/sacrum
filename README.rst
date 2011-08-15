@@ -129,7 +129,11 @@ The following methods are available on ``Views.prototype``:
       Console logging methods, which include the Views' name in logs.
 
 ModelAdminViews
-~~~~~~~~~~~~~~~
+---------------
+
+The following are defined in `modeladminviews.js`_
+
+.. _`modeladminviews.js`: https://github.com/insin/fragile/blob/master/modeladminviews.js
 
 Views which take care of some of the repetitive work involved in creating
 basic Create  / Retrieve / Update / Delete (CRUD) functionality for a Model.
@@ -177,7 +181,7 @@ Example of using ModelAdminViews::
    VehicleAdminViews.init()
 
 Templates
-#########
+~~~~~~~~~
 
 ModelAdminViews defines the following DOMBuilder templates, which you may wish
 to extend:
@@ -202,8 +206,8 @@ In the above template names, ``'admin'`` is a namespace.
 
 When loading templates, ModelAdminViews first attempts to load a template using
 the namespace which was provided when it was instantiated, so to override one of
-its templates, you just need to define a template named using your own
-namespace, leading.
+its templates, you just need to define a template named using your own, leading,
+namespace.
 
 In our Vehicles example, you could extend these templates to display a vehicle's
 registration and the number of wheels it has in the list template like so::
