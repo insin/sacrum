@@ -131,20 +131,7 @@ NoReverseMatch.prototype.toString = function() {
   return 'NoReverseMatch: ' + this.message
 }
 
-
 // ---------------------------------------------------------- Implementation ---
-
-var URLConf = {
-  patterns: null
-, resolver: null
-}
-
-function getResolver() {
-  if (URLConf.resolver === null) {
-    URLConf.resolver = new URLResolver('/', URLConf.patterns)
-  }
-  return URLConf.resolver
-}
 
 /**
  * Converts a url pattern to source for a RegExp which matches the specified URL
@@ -213,7 +200,7 @@ function URLResolver(pattern, urlPatterns) {
   // Resolvers start by matching a prefix, so anchor to start of the input
   this.regex = new RegExp('^' + patternToRE.call(this, pattern))
   this.urlPatterns = urlPatterns
-  this.reverseLookups = null
+  this._reverseLookups = null
 }
 
 URLResolver.prototype.toString = function() {
@@ -235,9 +222,9 @@ URLResolver.prototype._populate = function() {
       var reverseLookups = urlPattern.getReverseLookups()
       for (var name in reverseLookups) {
         var revLookup = reverseLookups[name]
-          , revLookupMatches = revLookup[0]
+          , revLookupParams = revLookup[0]
           , revLookupPattern = revLookup[1]
-        lookups[name] = [this.namedParams.concat(revLookupMatches[0]),
+        lookups[name] = [urlPattern.namedParams.concat(revLookupParams),
                          pattern + revLookupPattern]
       }
     }
@@ -245,14 +232,14 @@ URLResolver.prototype._populate = function() {
       lookups[urlPattern.name] = [urlPattern.namedParams, pattern]
     }
   }
-  this.reverseLookups = lookups
+  this._reverseLookups = lookups
 }
 
 URLResolver.prototype.getReverseLookups = function() {
-  if (this.reverseLookups === null) {
+  if (this._reverseLookups === null) {
     this._populate()
   }
-  return this.reverseLookups
+  return this._reverseLookups
 }
 
 /**
@@ -297,6 +284,7 @@ URLResolver.prototype.resolve = function(path) {
 }
 
 URLResolver.prototype.reverse = function(name, args) {
+  args = args || []
   var lookup = this.getReverseLookups()[name]
   if (lookup) {
     var expectedArgs = lookup[0]
@@ -311,7 +299,7 @@ URLResolver.prototype.reverse = function(name, args) {
         , args.join(', ')
         ))
     }
-    return format(pattern.replace(namedParamRE, '%s'), args)
+    return formatArr(pattern.replace(namedParamRE, '%s'), args)
   }
   throw new NoReverseMatch(format(
       'Reverse for "%s" with arguments [%s] not found.'
@@ -327,6 +315,18 @@ function ResolverMatch(func, args, urlName) {
 }
 
 // -------------------------------------------------------------- Public API ---
+
+var URLConf = {
+  patterns: null
+, resolver: null
+}
+
+function getResolver() {
+  if (URLConf.resolver === null) {
+    URLConf.resolver = new URLResolver('/', URLConf.patterns)
+  }
+  return URLConf.resolver
+}
 
 function patterns(context) {
   var args = Array.prototype.slice.call(arguments, 1)
