@@ -420,6 +420,7 @@ var templateAPI = DOMBuilder.modes.template.api
  * to the context.
  */
 function URLNode(urlName, args, options) {
+  args = args || []
   options = extend({as: null}, options || {})
   this.urlName = new templateAPI.TextNode(urlName)
   this.args = []
