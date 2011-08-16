@@ -375,6 +375,87 @@ function reverse(name, args, prefix) {
   return format('%s%s', prefix , resolver.reverse(name, args))
 }
 
+/**
+ * Event handler which prevents default submissions which would usually result
+ * in a new HTTP request and performs URL resolution of the target URL to
+ * determine which view function should be invokved.
+ *
+ * For form submissions, form data is collected from the form and passed as the
+ * last argument to the view function.
+ */
+function handleURLChange(e) {
+  console.log('handleURLChange', e)
+  e.preventDefault()
+  var el = e.target
+    , tagName = el.tagName.toLowerCase()
+  try {
+    if (tagName == 'a') {
+      var url = el.getAttribute('href')
+      console.log('Resolving link href URL', url)
+      var match = resolve(url)
+      match.func.apply(null, match.args)
+      // TODO History
+    }
+    else if (tagName == 'form') {
+      var url = el.getAttribute('action')
+        , formData = forms.formData(el)
+      console.log('Resolving form action URL', url, 'with form data', formData)
+      var match = resolve(url)
+      match.func.apply(null, match.args.concat([formData]))
+      // TODO History
+    }
+    else {
+      console.error('Unknown target element for resolution', tagName, el)
+    }
+  }
+  catch(e) {
+    alert(e)
+  }
+}
+
+var templateAPI = DOMBuilder.modes.template.api
+
+/**
+ * Resolves a URL with the given arguments (if any) and returns it or adds it
+ * to the context.
+ */
+function URLNode(urlName, args, options) {
+  options = extend({as: null}, options || {})
+  this.urlName = new templateAPI.TextNode(urlName)
+  this.args = []
+  for (var i = 0, l = args.length; i < l; i++) {
+    this.args.push(new templateAPI.TextNode(args[i]))
+  }
+  this.as = options.as
+}
+inherits(URLNode, templateAPI.TemplateNode)
+
+URLNode.prototype.render = function(context) {
+  var urlName = this.urlName.render(context).join('')
+  var args = []
+  for (var i = 0, l = this.args.length; i < l; i++) {
+    args.push(this.args[i].render(context).join(''))
+  }
+  var url = reverse(urlName, args)
+  if (this.as) {
+    context.set(this.as, url)
+    return []
+  }
+  return url
+}
+
+extend(DOMBuilder.template, {
+  /**
+   * Provides access to the handleURLChange handler function in templates.
+   */
+  $resolve: function() {
+    return handleURLChange
+  }
+, $url: function(urlName, args, options) {
+    return new URLNode(urlName, args, options)
+  }
+})
+
 // ================================================================== Models ===
 
 /**
@@ -573,4 +654,12 @@ Views.prototype.log = function(message) {
  */
 Views.prototype.warn = function(message) {
   console.warn(this.name, message)
+}
+
+/**
+ * Logs an error message with this Views' name.
+ */
+Views.prototype.error = function(message) {
+  console.error(this.name, message)
+  alert(message)
 }

@@ -413,7 +413,6 @@ var AdminViews = Views.extend({
   name: 'AdminViews'
 
 , modelViews: []
-, selectedModelViews: null
 
 , init: function() {
     this.log('init')
@@ -436,38 +435,16 @@ var AdminViews = Views.extend({
    */
 , index: function() {
     this.log('index')
+    var models = []
+    for (var i = 0, l = this.modelViews.length, mv; i < l; i++) {
+      var mv = this.modelViews[i]
+      models.push({
+        name: mv.storage.model._meta.namePlural
+      , listURL: reverse(format('admin_%s_list', mv.namespace))
+      })
+    }
     replace(this.header, 'Admin')
-    this.display('admin:index'
-      , { modelViews: this.modelViews }
-      , { select: this.selectModelViews }
-      )
-  }
-
-  /**
-   * Selects a ModelAdminView and displays its list.
-   */
-, selectModelViews: function(e) {
-    this.log('selectModelView')
-    e.preventDefault()
-    var selectedViewIndex = e.target.getAttribute('data-index')
-    var views = this.modelViews[selectedViewIndex]
-    replace(this.header,
-      this.render('admin:header'
-        , { modelName: views.storage.model._meta.namePlural }
-        , { index: this.index
-          , backToList: this.backToList
-          }
-        ))
-    this.selectedModelViews = views
-    views.list()
-  }
-
-  /**
-   * Re-lists the selected ModelAdminView. Temporary workaround until
-   * URLs/history are implemented.
-   */
-, backToList: function() {
-    this.selectedModelViews.list()
+    this.display('admin:index', {models: models})
   }
 
 , getURLs: function() {
@@ -479,7 +456,7 @@ var AdminViews = Views.extend({
       var modelViews = this.modelViews[i]
       urlPatterns = urlPatterns.concat(
           patterns(null
-          , url(modelViews.namespace + '/', include(modelViews.getURLs()))
+          , url(format('%s/', modelViews.namespace), include(modelViews.getURLs()))
           )
         )
     }
@@ -490,6 +467,35 @@ var AdminViews = Views.extend({
 // =============================================================== Templates ===
 
 !function() { with (DOMBuilder.template) {
+
+// ----------------------------------------------------- AdminView Templates ---
+
+$template('admin:header'
+, $if('modelName'
+  , A({href: '{{ adminURL }}', click: $resolve()}, 'Admin')
+  , ' : '
+  , A({href: '{{ listURL }}', click: $resolve()}, '{{ modelName }}')
+  , $else('Admin')
+  )
+)
+
+$template('admin:index'
+, TABLE({'class': 'list'}
+  , THEAD(TR(
+      TH('Models')
+    ))
+  , TBODY($for('model in models'
+    , $cycle(['odd', 'even'], {as: 'rowClass', silent: true})
+    , TR({'class': '{{ rowClass }}'}
+      , TD(A({href: '{{ model.listURL }}', click: $resolve()},
+          '{{ model.name }}'
+        ))
+      )
+    ))
+  )
+)
+
+// ------------------------------------------------ ModelAdminView Templates ---
 
 var template = DOMBuilder.template
 
@@ -755,33 +761,6 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
   )
 )
 
-// ----------------------------------------------------- AdminView Templates ---
-
-$template('admin:header'
-, $if('modelName'
-  , SPAN({click: $func('events.index'), 'class': 'link'}, 'Admin')
-  , ' : '
-  , SPAN({click: $func('events.backToList'), 'class': 'link'}, '{{ modelName }}')
-  , $else('Admin')
-  )
-)
-
-$template('admin:index'
-, TABLE({'class': 'list'}
-  , THEAD(TR(
-      TH('Model')
-    ))
-  , TBODY($for('modelView in modelViews'
-    , $cycle(['odd', 'even'], {as: 'rowClass', silent: true})
-    , TR({'class': 'link {{ rowClass }}'}
-      , TD({click: $func('events.select'), 'data-index': '{{ forloop.counter0 }}'}
-        , $func('modelView.storage.model._meta.name')
-        )
-      )
-    ))
-  )
-)
-
 }}()
 
 // ============================================================= Sample Data ===
@@ -805,8 +784,6 @@ $template('admin:index'
 window.onload = function() {
   AdminViews.init()
   URLConf.patterns = AdminViews.getURLs()
-  // TODO Invoke navigation to start URL instead
-  AdminViews.index()
-  console.info(resolve('/projects/'))
-  console.info(reverse('admin_users_edit', [123]))
+  var startURL = resolve('/')
+  startURL.func()
 }

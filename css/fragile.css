@@ -5,6 +5,7 @@ body { font-family: arial, helvetica, sans-serif; font-size: 14px; }
 /* Force same font for submit buttons */
 .controls input { font-family: arial, helvetica, sans-serif; }
 /* Adjust faux-button input heights to match submit buttons */
+.controls a.button { text-decoration: none; }
 .controls .button { padding-top: .4em; padding-bottom: .4em; }
 .controls .button:hover, .controls input:hover { background-color: black; color: yellow; }
 .controls .button:active, .controls input:active { background-color: black; color: #0f0; }

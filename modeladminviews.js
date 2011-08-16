@@ -76,126 +76,119 @@ extend(ModelAdminViews.prototype, {
    */
 , list: function() {
     this.log('list')
-    this.display([this.namespace + ':admin:list', 'admin:list']
-      , { items: this.storage.all()
-        , rowTemplates: [this.namespace + ':admin:listRow', 'admin:listRow']
+
+    // HACK
+    // This is a temporary hack until DOMBuilder's template loader is updated to
+    // be able to override templates by specifying a same-named template in a
+    // different context - these views shouldn't really know anything about the
+    // contents of fragile.js.
+    replace('admin-header', this.render('admin:header'
+      , { modelName: this.storage.model._meta.namePlural
+        , adminURL: reverse('admin_index')
+        , listURL: reverse(format('admin_%s_list', this.namespace))
         }
-      , { select: this.select
-        , add: this.add
+      ))
+
+    var items = this.storage.all()
+    this.display([this.namespace + ':admin:list', 'admin:list']
+      , { items: items
+        , rowTemplates: [this.namespace + ':admin:listRow', 'admin:listRow']
+        , addURL: reverse(format('admin_%s_add', this.namespace))
         }
       )
-  }
-
-  /**
-   * Selects a Model instance and displays its details.
-   */
-, select: function(e) {
-    this.log('select')
-    var id = e.target.getAttribute('data-id')
-    this.selectedItem = this.storage.get(id)
-    this.detail()
   }
 
   /**
    * Displays the selected Model's details.
    */
-, detail: function() {
+, detail: function(id) {
     this.log('detail')
+    item = this.storage.get(id)
     this.display([this.namespace + ':admin:detail', 'admin:detail']
-      , { item: this.selectedItem }
-      , { edit: this.edit
-        , preDelete: this.preDelete
+      , { item: item
+        , editURL: reverse(format('admin_%s_edit', this.namespace), [id])
+        , deleteURL: reverse(format('admin_%s_delete', this.namespace), [id])
         }
       )
   }
 
   /**
-   * Displays the add Form.
+   * Displays the add Form, or validates user input and creates a new Model
+   * instance or redisplays the form with errorsif form data was given.
    */
-, add: function() {
+, add: function(data) {
+    console.log(arguments)
     this.log('add')
-    this.display([this.namespace + ':admin:add', 'admin:add']
-      , { form: this.form() }
-      , { submit: this.createItem
-        , cancel: this.list
-        }
-      )
-  }
-
-  /**
-   * Validates user input and either creates a new Model instance or redisplays
-   * the form with errors.
-   */
-, createItem: function(e) {
-    this.log('createItem')
-    e.preventDefault()
-    var form = this.form({ data: forms.formData(this.namespace + 'Form') })
-    if (form.isValid()) {
-      this.storage.add(new this.storage.model(form.cleanedData))
-      this.list()
+    var form
+    if (data) {
+      form = this.form({data: data})
+      if (form.isValid()) {
+        this.storage.add(new this.storage.model(form.cleanedData))
+        this.list()
+      }
+      else {
+        replace(format('%sFormBody', this.namespace), form.asTable())
+      }
     }
     else {
-      replace(this.namespace + 'FormBody', form.asTable())
+      this.display([this.namespace + ':admin:add', 'admin:add']
+        , { form: this.form()
+          , submitURL: reverse(format('admin_%s_add', this.namespace))
+          , cancelURL: reverse(format('admin_%s_list', this.namespace))
+          }
+        )
     }
   }
 
   /**
-   * Displays the edit Form, populated with the selected Model instance's data.
+   * Displays the edit Form, populated with the selected Model instance's data,
+   * or validates user input and either updates the selected Model instance or
+   * redisplays the form with errors if form data was given.
    */
-, edit: function() {
+, edit: function(id, data) {
     this.log('edit')
-    this.display([this.namespace + ':admin:edit', 'admin:edit']
-      , { item: this.selectedItem
-        , form: this.form({ initial: this.selectedItem })
-        }
-      , { submit: this.updateItem
-        , cancel: this.detail
-        }
-      )
+    var item = this.storage.get(id)
+      , form
+    if (data) {
+      form = this.form({data: data, initial: item})
+      if (form.isValid()) {
+        extend(item, form.cleanedData)
+        this.list()
+      }
+      else {
+        replace(format('%sFormBody', this.namespace), form.asTable())
+      }
+    }
+    else {
+      this.display([this.namespace + ':admin:edit', 'admin:edit']
+        , { item: item
+          , form: this.form({initial: item})
+          , submitURL: reverse(format('admin_%s_edit', this.namespace), [id])
+          , cancelURL: reverse(format('admin_%s_detail', this.namespace), [id])
+          }
+        )
+    }
   }
 
   /**
-   * Validates user input and either updates the selected Model instance or
-   * redisplays the form with errors.
+   * Displays the Confirm Deletion screen for the selected Model instance, or
+   * performs deletion if form data was given.
    */
-, updateItem: function(e) {
-    this.log('updateItem')
-    e.preventDefault()
-    var form = this.form({ data: forms.formData(this.namespace + 'Form')
-                         , initial: this.selectedItem
-                         })
-    if (form.isValid()) {
-      extend(this.selectedItem, form.cleanedData)
-      this.selectedItem = null
+, delete_: function(id, data) {
+    this.log('preDelete')
+    var item = this.storage.get(id)
+    if (data) {
+      this.storage.remove(item)
       this.list()
     }
     else {
-      replace(this.namespace + 'FormBody', form.asTable())
+      this.display([this.namespace + ':admin:delete', 'admin:delete']
+        , { item: item
+          , submitURL: reverse(format('admin_%s_delete', this.namespace), [id])
+          , cancelURL: reverse(format('admin_%s_detail', this.namespace), [id])
+          }
+        )
     }
-  }
-
-  /**
-   * Displays the Confirm Deletion screen for the selected Model instance.
-   */
-, preDelete: function() {
-    this.log('preDelete')
-    this.display([this.namespace + ':admin:delete', 'admin:delete']
-      , { item: this.selectedItem }
-      , { confirmDelete: this.confirmDelete
-        , cancel: this.detail
-        }
-      )
-  }
-
-  /**
-   * Deletes the selected Model instance and returns to the list display.
-   */
-, confirmDelete: function(e) {
-    this.log('confirmDelete')
-    e.preventDefault()
-    this.storage.remove(this.selectedItem)
-    this.selectedItem = null
-    this.list()
   }
 
   /**
@@ -203,11 +196,11 @@ extend(ModelAdminViews.prototype, {
    */
 , getURLs: function() {
     return patterns(this
-    , url('',            'list',   'admin_' + this.namespace + '_list')
-    , url('add/',        'add',    'admin_' + this.namespace + '_add')
-    , url(':id/edit/',   'edit',   'admin_' + this.namespace + '_edit')
-    , url(':id/delete/', 'delete', 'admin_' + this.namespace + '_delete')
-    , url(':id/',        'detail', 'admin_' + this.namespace + '_detail')
+    , url('',            'list',    'admin_' + this.namespace + '_list')
+    , url('add/',        'add',     'admin_' + this.namespace + '_add')
+    , url(':id/edit/',   'edit',    'admin_' + this.namespace + '_edit')
+    , url(':id/delete/', 'delete_', 'admin_' + this.namespace + '_delete')
+    , url(':id/',        'detail',  'admin_' + this.namespace + '_detail')
     )
   }
 })
@@ -232,7 +225,16 @@ function buttonSpacer(text) {
   return template.SPAN({'class': 'spacer'}, text || ' or ')
 }
 
-$template('admin:list'
+$template('admin:base'
+, DIV({'id': 'admin-header'}
+  , $block('breadCrumbs')
+  )
+, DIV({'id': 'admin-content'}
+  , $block('contents')
+  )
+)
+
+$template({name: 'admin:list', extend: 'admin:base'}, $block('contents'
 , $block('itemTable'
   , TABLE({'class': 'list'}
     , THEAD(TR(
@@ -248,26 +250,24 @@ $template('admin:list'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , SPAN({click: $func('events.add'), 'class': 'button'}
+    , A({href: '{{ addURL }}', 'class': 'button', click: $resolve()}
       , 'Add {{ model.name }}'
       )
     )
   )
-)
+))
 
 $template('admin:listRow'
 , TR({id: '{{ ns }}-{{ item.id }}', 'class': '{{ rowClass }}'}
-  , TD({ click: $func('events.select')
-       , 'data-id': '{{ item.id }}'
-       , 'class': 'link'
-       }
+  , $url('admin_{{ ns }}_detail', ['{{ item.id }}'], {as: 'detailURL'})
+  , TD(A({href: '{{ detailURL }}', click: $resolve()}
     , $block('linkText', '{{ item }}')
-    )
+    ))
   , $block('extraCells')
   )
 )
 
-$template('admin:detail'
+$template({name: 'admin:detail', extend: 'admin:base'}, $block('contents'
 , $block('top')
 , $block('detail'
   , TABLE({'class': 'detail'}
@@ -282,15 +282,15 @@ $template('admin:detail'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , SPAN({click: $func('events.edit'), 'class': 'button'}, 'Edit')
+    , A({href: '{{ editURL }}', click: $resolve(), 'class': 'button'}, 'Edit')
     , buttonSpacer()
-    , SPAN({click: $func('events.preDelete'), 'class': 'button'}, 'Delete')
+    , A({href: '{{ deleteURL }}', click: $resolve(), 'class': 'button'}, 'Delete')
     )
   )
-)
+))
 
-$template('admin:add'
-, FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/add/'}
+$template({name: 'admin:add', extend: 'admin:base'}, $block('contents'
+, FORM({id: '{{ ns }}Form', method: 'POST', action: '{{ submitURL }}', submit: $resolve()}
   , TABLE({'class': 'form detail'}
     , detailColumns({columns: 1})
     , TBODY({id: '{{ ns }}FormBody'}, $block('formRows'
@@ -298,22 +298,15 @@ $template('admin:add'
       ))
     )
   , DIV({'class': 'controls'}
-    , INPUT({ click: $func('events.submit')
-            , 'type': 'submit'
-            , value: 'Add {{ model.name }}'
-            , 'class': 'add'
-            })
+    , INPUT({'type': 'submit', value: 'Add {{ model.name }}', 'class': 'add'})
     , buttonSpacer()
-    , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
+    , A({href: '{{ cancelURL }}', click: $resolve(), 'class': 'button cancel'}, 'Cancel')
     )
   )
-)
+))
 
-$template('admin:edit'
-, FORM({ id: '{{ ns }}Form'
-       , method: 'POST'
-       , action: '/{{ ns }}/{{ item.id }}/edit/'
-       }
+$template({name: 'admin:edit', extend: 'admin:base'}, $block('contents'
+, FORM({ id: '{{ ns }}Form', method: 'POST', action: '{{ submitURL }}', submit: $resolve()}
   , TABLE({'class': 'form detail'}
     , detailColumns({columns: 1})
     , TBODY({id: '{{ ns }}FormBody'}, $block('formRows'
@@ -321,29 +314,25 @@ $template('admin:edit'
       ))
     )
   , DIV({'class': 'controls'}
-    , INPUT({ click: $func('events.submit')
-            , type: 'submit'
-            , value: 'Edit {{ model.name }}'
-            , 'class': 'edit'
-            })
+    , INPUT({type: 'submit', value: 'Edit {{ model.name }}', 'class': 'edit'})
     , buttonSpacer()
-    , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
+    , A({href: '{{ cancelURL }}', click: $resolve(), 'class': 'button cancel'}, 'Cancel')
     )
   )
-)
+))
 
-$template('admin:delete'
+$template({name: 'admin:delete', extend: 'admin:base'}, $block('contents'
 , H2('Confirm Deletion')
 , P('Are you sure you want to delete the {{ model.name }} "{{ item }}"?')
 , DIV({'class': 'controls'}
-  , INPUT({ click: $func('events.confirmDelete')
-          , type: 'submit'
-          , value: 'Delete {{ model.name }}'
-          , 'class': 'delete'
-          })
-  , buttonSpacer()
-  , SPAN({click: $func('events.cancel'), 'class': 'button cancel'}, 'Cancel')
+  , FORM({action: '{{ submitURL }}', method: 'POST', submit: $resolve()}
+    , DIV(
+        INPUT({type: 'submit', value: 'Delete {{ model.name }}', 'class': 'delete'})
+      , buttonSpacer()
+      , A({href: '{{ cancelURL }}', click: $resolve(), 'class': 'button cancel'}, 'Cancel')
+      )
+    )
   )
-)
+))
 
 }}()
