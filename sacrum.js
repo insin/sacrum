@@ -173,7 +173,7 @@ function URLPattern(pattern, callback, name) {
   this.pattern = pattern
   // Only full matches are accepted when resolving, so anchor to start and end
   // of the input.
-  this.regex = new RegExp('^' + patternToRE.call(this, pattern) + '$', 'g')
+  this.regex = new RegExp('^' + patternToRE.call(this, pattern) + '$')
 
   if (isFunction(callback)) {
     this.callback = callback
@@ -211,7 +211,7 @@ URLPattern.prototype.resolve = function(path) {
 function URLResolver(pattern, urlPatterns) {
   this.pattern = pattern
   // Resolvers start by matching a prefix, so anchor to start of the input
-  this.regex = new RegExp('^' + patternToRE.call(this, pattern), 'g')
+  this.regex = new RegExp('^' + patternToRE.call(this, pattern))
   this.urlPatterns = urlPatterns
   this.reverseLookups = null
 }
@@ -263,7 +263,7 @@ URLResolver.prototype.resolve = function(path) {
     , match = this.regex.exec(path)
   if (match) {
     var args = match.slice(1)
-      , subPath = path.substring(this.regex.lastIndex)
+      , subPath = path.substring(match[0].length)
       , urlPattern
       , subMatch
     for (var i = 0, l = this.urlPatterns.length; i < l; i++) {
