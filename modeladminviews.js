@@ -293,9 +293,9 @@ $template('admin:add'
 , FORM({id: '{{ ns }}Form', method: 'POST', action: '/{{ ns }}/add/'}
   , TABLE({'class': 'form detail'}
     , detailColumns({columns: 1})
-    , TBODY({id: '{{ ns }}FormBody'}
+    , TBODY({id: '{{ ns }}FormBody'}, $block('formRows'
       , $var('form.asTable')
-      )
+      ))
     )
   , DIV({'class': 'controls'}
     , INPUT({ click: $func('events.submit')
@@ -316,9 +316,9 @@ $template('admin:edit'
        }
   , TABLE({'class': 'form detail'}
     , detailColumns({columns: 1})
-    , TBODY({id: '{{ ns }}FormBody'}
+    , TBODY({id: '{{ ns }}FormBody'}, $block('formRows'
       , $var('form.asTable')
-      )
+      ))
     )
   , DIV({'class': 'controls'}
     , INPUT({ click: $func('events.submit')

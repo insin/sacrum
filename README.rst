@@ -193,11 +193,11 @@ to extend:
 +-------------------+--------------------------------------------+---------------------------------------+
 | ``admin:listRow`` | table row displayed in list view           | linkText, extraCells                  |
 +-------------------+--------------------------------------------+---------------------------------------+
-| ``admin:add``     | add form for creating a new model instance | N/A                                   |
+| ``admin:add``     | add form for creating a new model instance | formRows                              |
 +-------------------+--------------------------------------------+---------------------------------------+
 | ``admin:detail``  | details of a selected model instance       | top, detail, detailRows, controls     |
 +-------------------+--------------------------------------------+---------------------------------------+
-| ``admin:edit``    | edit form for a model instance             | N/A                                   |
+| ``admin:edit``    | edit form for a model instance             | formRows                              |
 +-------------------+--------------------------------------------+---------------------------------------+
 | ``admin:delete``  | confirms deletion of a model instance      | N/A                                   |
 +-------------------+--------------------------------------------+---------------------------------------+
