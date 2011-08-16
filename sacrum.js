@@ -446,11 +446,12 @@ URLNode.prototype.render = function(context) {
 
 extend(DOMBuilder.template, {
   /**
-   * Provides access to the handleURLChange handler function in templates.
+   * Provides access to the handleURLChange function in templates.
    */
-  $resolve: function() {
-    return handleURLChange
-  }
+  $resolve: handleURLChange
+  /**
+   * Provides access to URLNode in templates.
+   */
 , $url: function(urlName, args, options) {
     return new URLNode(urlName, args, options)
   }

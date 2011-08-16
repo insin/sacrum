@@ -250,7 +250,7 @@ $template({name: 'admin:list', extend: 'admin:base'}, $block('contents'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , A({href: '{{ addURL }}', 'class': 'button', click: $resolve()}
+    , A({href: '{{ addURL }}', 'class': 'button', click: $resolve}
       , 'Add {{ model.name }}'
       )
     )
@@ -260,7 +260,7 @@ $template({name: 'admin:list', extend: 'admin:base'}, $block('contents'
 $template('admin:listRow'
 , TR({id: '{{ ns }}-{{ item.id }}', 'class': '{{ rowClass }}'}
   , $url('admin_{{ ns }}_detail', ['{{ item.id }}'], {as: 'detailURL'})
-  , TD(A({href: '{{ detailURL }}', click: $resolve()}
+  , TD(A({href: '{{ detailURL }}', click: $resolve}
     , $block('linkText', '{{ item }}')
     ))
   , $block('extraCells')
@@ -282,15 +282,15 @@ $template({name: 'admin:detail', extend: 'admin:base'}, $block('contents'
   )
 , DIV({'class': 'controls'}
   , $block('controls'
-    , A({href: '{{ editURL }}', click: $resolve(), 'class': 'button'}, 'Edit')
+    , A({href: '{{ editURL }}', click: $resolve, 'class': 'button'}, 'Edit')
     , buttonSpacer()
-    , A({href: '{{ deleteURL }}', click: $resolve(), 'class': 'button'}, 'Delete')
+    , A({href: '{{ deleteURL }}', click: $resolve, 'class': 'button'}, 'Delete')
     )
   )
 ))
 
 $template({name: 'admin:add', extend: 'admin:base'}, $block('contents'
-, FORM({id: '{{ ns }}Form', method: 'POST', action: '{{ submitURL }}', submit: $resolve()}
+, FORM({id: '{{ ns }}Form', method: 'POST', action: '{{ submitURL }}', submit: $resolve}
   , TABLE({'class': 'form detail'}
     , detailColumns({columns: 1})
     , TBODY({id: '{{ ns }}FormBody'}, $block('formRows'
@@ -300,13 +300,13 @@ $template({name: 'admin:add', extend: 'admin:base'}, $block('contents'
   , DIV({'class': 'controls'}
     , INPUT({'type': 'submit', value: 'Add {{ model.name }}', 'class': 'add'})
     , buttonSpacer()
-    , A({href: '{{ cancelURL }}', click: $resolve(), 'class': 'button cancel'}, 'Cancel')
+    , A({href: '{{ cancelURL }}', click: $resolve, 'class': 'button cancel'}, 'Cancel')
     )
   )
 ))
 
 $template({name: 'admin:edit', extend: 'admin:base'}, $block('contents'
-, FORM({ id: '{{ ns }}Form', method: 'POST', action: '{{ submitURL }}', submit: $resolve()}
+, FORM({ id: '{{ ns }}Form', method: 'POST', action: '{{ submitURL }}', submit: $resolve}
   , TABLE({'class': 'form detail'}
     , detailColumns({columns: 1})
     , TBODY({id: '{{ ns }}FormBody'}, $block('formRows'
@@ -316,7 +316,7 @@ $template({name: 'admin:edit', extend: 'admin:base'}, $block('contents'
   , DIV({'class': 'controls'}
     , INPUT({type: 'submit', value: 'Edit {{ model.name }}', 'class': 'edit'})
     , buttonSpacer()
-    , A({href: '{{ cancelURL }}', click: $resolve(), 'class': 'button cancel'}, 'Cancel')
+    , A({href: '{{ cancelURL }}', click: $resolve, 'class': 'button cancel'}, 'Cancel')
     )
   )
 ))
@@ -325,11 +325,11 @@ $template({name: 'admin:delete', extend: 'admin:base'}, $block('contents'
 , H2('Confirm Deletion')
 , P('Are you sure you want to delete the {{ model.name }} "{{ item }}"?')
 , DIV({'class': 'controls'}
-  , FORM({action: '{{ submitURL }}', method: 'POST', submit: $resolve()}
+  , FORM({action: '{{ submitURL }}', method: 'POST', submit: $resolve}
     , DIV(
         INPUT({type: 'submit', value: 'Delete {{ model.name }}', 'class': 'delete'})
       , buttonSpacer()
-      , A({href: '{{ cancelURL }}', click: $resolve(), 'class': 'button cancel'}, 'Cancel')
+      , A({href: '{{ cancelURL }}', click: $resolve, 'class': 'button cancel'}, 'Cancel')
       )
     )
   )

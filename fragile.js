@@ -472,9 +472,9 @@ var AdminViews = Views.extend({
 
 $template('admin:header'
 , $if('modelName'
-  , A({href: '{{ adminURL }}', click: $resolve()}, 'Admin')
+  , A({href: '{{ adminURL }}', click: $resolve}, 'Admin')
   , ' : '
-  , A({href: '{{ listURL }}', click: $resolve()}, '{{ modelName }}')
+  , A({href: '{{ listURL }}', click: $resolve}, '{{ modelName }}')
   , $else('Admin')
   )
 )
@@ -487,7 +487,7 @@ $template('admin:index'
   , TBODY($for('model in models'
     , $cycle(['odd', 'even'], {as: 'rowClass', silent: true})
     , TR({'class': '{{ rowClass }}'}
-      , TD(A({href: '{{ model.listURL }}', click: $resolve()},
+      , TD(A({href: '{{ model.listURL }}', click: $resolve},
           '{{ model.name }}'
         ))
       )
