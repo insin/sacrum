@@ -1,3 +1,62 @@
+// =================================================================== Views ===
+
+// ------------------------------------------------------------- Admin Views ---
+
+/**
+ * Views which use created ModelAdminView instances to display an admin section.
+ */
+var AdminViews = Views.extend({
+  name: 'AdminViews'
+
+, modelViews: []
+
+, init: function() {
+    this.log('init')
+    this.el = document.getElementById('admin')
+
+    // Automatically hook ap all ModelAdminViews which have been created
+    for (var i = 0, l = Views._created.length; i < l; i++) {
+      if (Views._created[i] instanceof ModelAdminViews) {
+        var views = Views._created[i]
+        // Give all ModelAdminViews the same admin element to display content in
+        views.el = this.el
+        this.modelViews.push(views)
+      }
+    }
+  }
+
+  /**
+   * Lists models for which ModelAdminViews have been created.
+   */
+, index: function() {
+    this.log('index')
+    var models = []
+    for (var i = 0, l = this.modelViews.length, mv; i < l; i++) {
+      var mv = this.modelViews[i]
+      models.push({
+        name: mv.storage.model._meta.namePlural
+      , listURL: reverse(format('admin_%s_list', mv.namespace))
+      })
+    }
+    this.display('admin:index', {models: models})
+  }
+
+, getURLs: function() {
+    var urlPatterns = patterns(this
+      , url('', 'index', 'admin_index')
+      )
+    for (var i = 0, l = this.modelViews.length; i < l; i++) {
+      var mv = this.modelViews[i]
+      urlPatterns = urlPatterns.concat(patterns(null
+        , url(format('%s/', mv.namespace), mv.getURLs())
+        ))
+    }
+    return urlPatterns
+  }
+})
+
+// --------------------------------------------------------- ModelAdminViews ---
+
 /**
  * Views which take care of some of the repetitive work involved in creating
  * basic CRUD functionality for a particular Model. This specialised version of
@@ -76,19 +135,6 @@ extend(ModelAdminViews.prototype, {
    */
 , list: function() {
     this.log('list')
-
-    // HACK
-    // This is a temporary hack until DOMBuilder's template loader is updated to
-    // be able to override templates by specifying a same-named template in a
-    // different context - these views shouldn't really know anything about the
-    // contents of fragile.js.
-    replace('admin-header', this.render('admin:header'
-      , { modelName: this.storage.model._meta.namePlural
-        , adminURL: reverse('admin_index')
-        , listURL: reverse(format('admin_%s_list', this.namespace))
-        }
-      ))
-
     var items = this.storage.all()
     this.display([this.namespace + ':admin:list', 'admin:list']
       , { items: items
@@ -211,6 +257,44 @@ extend(ModelAdminViews.prototype, {
 
 var template = DOMBuilder.template
 
+$template('admin:base'
+, DIV({'id': 'admin-header'}
+  , $block('breadCrumbs'
+    , H2(
+        A({href: $url('admin_index'), click: $resolve}, 'Admin')
+      , $if('ns'
+        , ' : '
+        , A({href: $url('admin_{{ ns }}_list'), click: $resolve}, '{{ model.namePlural }}')
+        )
+      )
+    )
+  )
+, DIV({'id': 'admin-content'}
+  , $block('contents')
+  )
+)
+
+$template({name: 'admin:index', extend: 'admin:base'}, $block('contents'
+, TABLE({'class': 'list'}
+  , THEAD(TR(
+      TH('Models')
+    ))
+  , TBODY($for('model in models'
+    , $cycle(['odd', 'even'], {as: 'rowClass', silent: true})
+    , TR({'class': '{{ rowClass }}'}
+      , TD(A({href: '{{ model.listURL }}', click: $resolve},
+          '{{ model.name }}'
+        ))
+      )
+    ))
+  )
+))
+
+// ----------------------------------------------------- AdminView Templates ---
+
+/**
+ * Creates a <colgroup> to ensure detail column headers are a particular width.
+ */
 function detailColumns(options) {
   options = extend({width: '110px', columns: 2}, options || {})
   var cols = []
@@ -221,18 +305,12 @@ function detailColumns(options) {
   return template.COLGROUP(cols)
 }
 
+/**
+ * Creates a <span> to space buttons out with some text.
+ */
 function buttonSpacer(text) {
   return template.SPAN({'class': 'spacer'}, text || ' or ')
 }
-
-$template('admin:base'
-, DIV({'id': 'admin-header'}
-  , $block('breadCrumbs')
-  )
-, DIV({'id': 'admin-content'}
-  , $block('contents')
-  )
-)
 
 $template({name: 'admin:list', extend: 'admin:base'}, $block('contents'
 , $block('itemTable'

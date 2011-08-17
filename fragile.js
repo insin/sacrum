@@ -407,100 +407,17 @@ var TaskAdminViews = ModelAdminViews.extend({
 , form: TaskForm
 })
 
-// ------------------------------------------------------------- Admin Views ---
-
-var AdminViews = Views.extend({
-  name: 'AdminViews'
-
-, modelViews: []
-
-, init: function() {
-    this.log('init')
-    this.header = document.getElementById('admin-header')
-    this.el = document.getElementById('admin-content')
-
-    // Automatically hook ap all ModelAdminViews which have been created
-    for (var i = 0, l = Views._created.length; i < l; i++) {
-      if (Views._created[i] instanceof ModelAdminViews) {
-        var views = Views._created[i]
-        // Give all ModelAdminViews the same admin element to display content in
-        views.el = this.el
-        this.modelViews.push(views)
-      }
-    }
-  }
-
-  /**
-   * Lists models for which ModelAdminViews have been created.
-   */
-, index: function() {
-    this.log('index')
-    var models = []
-    for (var i = 0, l = this.modelViews.length, mv; i < l; i++) {
-      var mv = this.modelViews[i]
-      models.push({
-        name: mv.storage.model._meta.namePlural
-      , listURL: reverse(format('admin_%s_list', mv.namespace))
-      })
-    }
-    replace(this.header, 'Admin')
-    this.display('admin:index', {models: models})
-  }
-
-, getURLs: function() {
-    var urlPatterns =
-        patterns(this
-        , url('', 'index', 'admin_index')
-        )
-    for (var i = 0, l = this.modelViews.length; i < l; i++) {
-      var modelViews = this.modelViews[i]
-      urlPatterns = urlPatterns.concat(
-          patterns(null
-          , url(format('%s/', modelViews.namespace), include(modelViews.getURLs()))
-          )
-        )
-    }
-    return urlPatterns
-  }
-})
-
 // =============================================================== Templates ===
 
 !function() { with (DOMBuilder.template) {
-
-// ----------------------------------------------------- AdminView Templates ---
-
-$template('admin:header'
-, $if('modelName'
-  , A({href: '{{ adminURL }}', click: $resolve}, 'Admin')
-  , ' : '
-  , A({href: '{{ listURL }}', click: $resolve}, '{{ modelName }}')
-  , $else('Admin')
-  )
-)
-
-$template('admin:index'
-, TABLE({'class': 'list'}
-  , THEAD(TR(
-      TH('Models')
-    ))
-  , TBODY($for('model in models'
-    , $cycle(['odd', 'even'], {as: 'rowClass', silent: true})
-    , TR({'class': '{{ rowClass }}'}
-      , TD(A({href: '{{ model.listURL }}', click: $resolve},
-          '{{ model.name }}'
-        ))
-      )
-    ))
-  )
-)
 
 // ------------------------------------------------ ModelAdminView Templates ---
 
 var template = DOMBuilder.template
 
 /**
- * Creates a detail section.
+ * Creates a detail section consisting of pairs of name:value cells, with up to
+ * two pairs displayed per row.
  */
 function section(label, rows) {
   var els = [
@@ -773,10 +690,10 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
     , pa1 = Packages.add(new Package({name: 'Package 1'}))
     , pa2 = Packages.add(new Package({name: 'Package 2'}))
     , r1 = Releases.add(new Release({name: 'Release 1', theme: 'Do the thing.\n\nAnd the other thing.', state: Release.States.ACTIVE, startDate: new Date(2010, 5, 1), releaseDate: new Date(2010, 11, 16), project: p1, resources: 76.5, estimate: 54.0}))
-    , r2 = Releases.add(new Release({name: 'Release 2', state: Release.States.PLANNING, startDate: new Date(2011, 1, 1), releaseDate: new Date(2011, 9, 16), project: p1, resources: 76.5, estimate: 54.0}))
-    , r3 = Releases.add(new Release({name: 'Release 1', state: Release.States.PLANNING, startDate: new Date(2011, 3, 16), releaseDate: new Date(2012, 6, 1), project: p2, resources: 76.5, estimate: 54.0}))
-    , i1 = Iterations.add(new Iteration({name: 'Sprint 1', startDate: new Date(2010, 5, 1), endDate: new Date(2010, 6, 1), project: p1, resources: 76.5, estimate: 54.0}))
-    , i2 = Iterations.add(new Iteration({name: 'Sprint 2', startDate: new Date(2010, 6, 1), endDate: new Date(2010, 7, 1), project: p1, resources: 76.5, estimate: 54.0}))
+    , r2 = Releases.add(new Release({name: 'Release 2', theme: 'This and that.\n\nNothing major.', state: Release.States.PLANNING, startDate: new Date(2011, 1, 1), releaseDate: new Date(2011, 9, 16), project: p1, resources: 76.5, estimate: 54.0}))
+    , r3 = Releases.add(new Release({name: 'Release 1', theme: 'Months of firefighting.', state: Release.States.PLANNING, startDate: new Date(2011, 3, 16), releaseDate: new Date(2012, 6, 1), project: p2, resources: 76.5, estimate: 54.0}))
+    , i1 = Iterations.add(new Iteration({name: 'Sprint 1', theme: 'Getting started.', state: Iteration.States.COMMITTED, startDate: new Date(2010, 5, 1), endDate: new Date(2010, 6, 1), project: p1, resources: 76.5, estimate: 54.0}))
+    , i2 = Iterations.add(new Iteration({name: 'Sprint 2', theme: 'Big, risky stories.', state: Iteration.States.PLANNING, startDate: new Date(2010, 6, 1), endDate: new Date(2010, 7, 1), project: p1, resources: 76.5, estimate: 54.0}))
     , s1 = Stories.add(new Story({name: 'Story 1', project: p1, parent: null, state: Story.States.IN_PROGRESS, owner: u1, package: pa1, release: r1, iteration: i1, planEstimate: 20.0, rank: 1.0}))
     , t1 = Tasks.add(new Task({name: 'Task 1', state: Task.States.IN_PROGRESS, estimate: 15.0, actuals: 5.0, todo: 10.0, story: s1, owner: u1, rank: 2.0}))
 }()
