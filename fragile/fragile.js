@@ -236,7 +236,7 @@ extend(Task.prototype, {
   }
 })
 
-// ===================================================== Storage / Retrieval ===
+// ----------------------------------------------- Model Storage / Retrieval ---
 
 var Projects = new Storage(Project)
   , Packages = new Storage(Package)
@@ -429,7 +429,7 @@ function section(label, rows) {
   if (rows) {
     for (var i = 0, l = rows.length; i < l; i++) {
       var row = rows[i]
-        , rowFunc = (row.length == 2 ? singleRow : multiRow);
+        , rowFunc = (row.length == 2 ? singleRow : multiRow)
       els.push(rowFunc.apply(null, row))
     }
   }
@@ -567,7 +567,7 @@ $template({name: 'iterations:admin:detail', extend: 'admin:detail'}
   )
 )
 
-// ----------------------------------------------------------------- Stories ---
+// ------------------------------------------------------------- Story Admin ---
 
 $template({name: 'stories:admin:list', extend: 'admin:list'}
 , $block('headers'
@@ -620,7 +620,7 @@ $template({name: 'stories:admin:detail', extend: 'admin:detail'}
   )
 )
 
-// ------------------------------------------------------------------- Tasks ---
+// -------------------------------------------------------------- Task Admin ---
 
 $template({name: 'tasks:admin:list', extend: 'admin:list'}
 , $block('headers'
@@ -698,9 +698,13 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
     , t1 = Tasks.add(new Task({name: 'Task 1', state: Task.States.IN_PROGRESS, estimate: 15.0, actuals: 5.0, todo: 10.0, story: s1, owner: u1, rank: 2.0}))
 }()
 
+// ============================================================== Initialise ===
+
 window.onload = function() {
   AdminViews.init()
-  URLConf.patterns = AdminViews.getURLs()
-  var startURL = resolve('/')
+  URLConf.patterns = patterns(null
+  ,  url('admin/', AdminViews.getURLs())
+  )
+  var startURL = resolve('/admin/')
   startURL.func()
 }

@@ -1,22 +1,29 @@
-=======
-Fragile
-=======
+======
+Sacrum
+======
 
-Single-page webapp for Agile-buzzword compliant project management, and maybe
-more...
+Sacrum is *another* helper for writing single-page (and beyond!) JavaScript
+applications... more on that in the future, for now it's under inital
+development, so watch this space.
 
-Reusable Components
-===================
+The sample application for Sacrum is `Fragile`_ - it serves as the test-bed
+and proving ground for new features, components and ideas.
 
-The following are defined in `sacrum.js`_ (sorry!)
+.. _`Fragile`: http://bit.ly/n1NZUa
+
+Components
+==========
+
+The following components are defined in `sacrum.js`_.
 
 .. _`sacrum.js`: https://github.com/insin/fragile/blob/master/sacrum.js
 
 Models
 ------
 
-We all know roughly what this sort of thing looks like - focusing more on other
-areas until I know what the long-term direction is here (see `NOTES.rst`_).
+We all know roughly what this sort of thing needs to look like - focusing more
+on other areas until I know what the long-term direction is here (see
+`NOTES.rst`_).
 
 ``Model(attrs)``
 
@@ -68,6 +75,22 @@ areas until I know what the long-term direction is here (see `NOTES.rst`_).
 
    ``get(id)``
       Gets an instance by id.
+
+Validation
+~~~~~~~~~~
+
+Sacrum doesn't insist that you use any particular means of performing model
+validation - it doesn't even offer any hooks for doing so yet! - but it does
+let `newforms`_ know how its ``Storage`` objects work, which enables
+use of ``forms.ModelVhoiceField`` for display, selection and validation of
+related Models.
+
+::
+
+   var DriverForm = forms.Form({
+     name: forms.CharField({maxLength: 255})
+   , vehicle: forms.ModelChoiceField(Vehicles.query())
+   })
 
 .. _`NOTES.rst`: https://github.com/insin/fragile/blob/master/NOTES.rst
 
@@ -122,18 +145,177 @@ The following methods are available on ``Views.prototype``:
       Views' element.
 
    ``initAll()``
-      Calls ``init`` on every Views instance which has been created, if it has
-      one.
+      Calls the ``init()`` on every Views instance which has been created which
+      has one. This is probably only useful for initial testing, as you'll
+      likely create an application Views instance to bootstrap things once you
+      get going.
 
-   ``log(message)``, ``warn(message)``
-      Console logging methods, which include the Views' name in logs.
+   ``log(...)``, ``warn(...)``, ``error(...)``
+      Console logging methods, which include the Views' name in logs, passing
+      all given arguments to console logging functions.
+
+::
+
+   var VehicleViews = Views.extend({
+     name: 'VehicleViews'
+
+   , init: function() {
+       this.el = document.getElementById("vehicles")
+     }
+
+   , list: function() {
+       this.debug('list')
+       var vehicles = Vehicles.all()
+       this.display('vehicleList', {vehicles: vehicles})
+     }
+
+     // ...
+   })
+
+URLs
+----
+
+URL patterns can be used to map URLs to views, capturing named parameters
+in the process, and to reverse-resolve a URL name and parameters to a URL.
+
+``URLConf``
+   Application URL patterns should be set in ``URLConf.patterns`` for
+   resolution.
+
+``patterns(context, patterns...)``
+   Creates a list of URL patterns, which can be specified using the ``url``
+   function or an array with the same contents as that function's arguments.
+
+   View names can be specified as strings to be looked up from a context object
+   (usually a ``Views`` instance), which should be passed as the first argument
+   in that case, otherwise it should be ``null`` or falsy.
+
+``url(pattern, view, urlName)``
+   Creates a URL pattern or roots a list of patterns to the given pattern if
+   a list of views. The URL name is used in reverse URL lookups and should be
+   unique.
+
+   Patterns:
+
+   * Should not start with a leading slash, but should end with a trailing slash
+     if being used to root other patterns, othewrwise to yor own taste.
+
+   * Can identify named parameters to be extracted from resolved URLS using a
+     leading ``:``, e.g.::
+
+        widgets/:id/edit/
+
+``resolve(path)``
+   Resolves the given URL path, returning an object with ``func``, ``args`` and
+   ``urlName`` properties if successful, otherwise throwing a ``Resolver404``
+   error.
+
+``reverse(urlName, args)``
+   Reverse-resolves the given named URL with the given args (if applicable),
+   returning a URL string if successful, otherwise throwing a ``NoReverseMatch``
+   error.
+
+``handleURLChange(e)``
+   Event handling function which prevents navigation from occurring and instead
+   simulates it, resolving the target URL, extracting arguments if necessary and
+   calling the configured view function with them.
+
+   This function knows how to deal with:
+
+   * Links (``<a>`` elements), handling their ``onclick`` event.
+   * Forms (``<form>`` elements), handling their ``onsubmit`` event.
+
+   If used with a form's ``onsubmit`` event, submission of form parameters will
+   be simulated as an object passed as the last argument to the view function.
+   Values for multiple fields with the same ``name`` will be passed as a list.
+
+::
+
+   var VehicleViews = Views.extend({
+     // ...
+
+   , index: function() {
+        this.display('index')
+     }
+
+   , details: function(id) {
+       var vehicle = Vehicles.get(id)
+       this.display('vehicleDetails', {vehicle: vehicle})
+     }
+
+   , getURLs: function() {
+       return patterns(this,
+       , url('',      'index',   'vehicle_index')
+       , url('list/', 'list',    'vehicle_list')
+       , url(':id/',  'details', 'vehicle_details')
+       )
+     }
+
+     // ..
+   })
+
+Templates
+---------
+
+Sacrum doesn't insist that you use any particular templating engine, but comes
+with helpers out of the box to use `DOMBuilder`_'s templating mode.
+
+The default implementation of Views' ``render()`` method uses DOMBuilder
+templates and the following additional helpers are also provided.
+
+``URLNode(urlName, args, options)``
+  A ``TemplateNode`` which reverse-resolves using the given URL details.
+
+  If an ``{as: 'someName'}`` options object is passed, the URL will be added
+  to the template context under the given variable name, otherwise it will be
+  returned.
+
+The following convenience accesors are added to ``DOMBuilder.template``:
+
+``$resolve``
+   A reference to ``handleURLChange(e)``
+
+``$url(urlName, args, options)``
+  Creates a URLNode.
+
+.. _`DOMBuilder`: https://github.com/insin/DOMBuilder
+
+History
+-------
+
+TODO
+
+Admin App
+=========
+
+The following components are defined in `admin.js`_
+
+.. _`admin.js`: https://github.com/insin/fragile/blob/master/admin.js
+
+AdminViews
+----------
+
+Views which make use of any ModelAdminViews which have been created to display
+a basic admin section.
+
+``AdminViews`` contains the following properties and functions:
+
+   ``init()``
+      Initialise's the view element and registers all ModelAdminViews which
+      have been created so far.
+
+   ``modelViews`` (Array)
+      ModelAdminViews registered by ``init()``
+
+   ``index()``
+      Displays an index listing ModelAdminViews for use.
+
+   ``getURLs()``
+      Creates and returns URL patterns for the index view and includes
+      patterns for each ModelAdminViews.
 
 ModelAdminViews
 ---------------
-
-The following are defined in `modeladminviews.js`_
-
-.. _`modeladminviews.js`: https://github.com/insin/fragile/blob/master/modeladminviews.js
 
 Views which take care of some of the repetitive work involved in creating
 basic Create  / Retrieve / Update / Delete (CRUD) functionality for a Model.
@@ -168,7 +350,7 @@ attributes:
       A Form used to take and validate user input when creating and updating
       Model instances.
 
-Example of using ModelAdminViews::
+Example of registering ModelAdminViews::
 
    var VehicleAdminViews = ModelAdminViews.extend(
      name: 'VehicleAdminViews'
@@ -177,18 +359,19 @@ Example of using ModelAdminViews::
    , form: VehicleForm
    })
 
-   // Later...
-   VehicleAdminViews.init()
-
 Templates
-~~~~~~~~~
+---------
 
-ModelAdminViews defines the following DOMBuilder templates, which you may wish
-to extend:
+The Admin uses the following DOMBuilder templates, which you may wish to
+extend to customise display.
 
 +-------------------+--------------------------------------------+---------------------------------------+
 | Template          | Description                                | Blocks                                |
 +===================+============================================+=======================================+
+| ``admin:base``    | base template for admin display            | breadCrumbs, contents                 |
++-------------------+--------------------------------------------+---------------------------------------+
+| ``admin:index``   | table listing of ModelAdminViews           | N/A                                   |
++-------------------+--------------------------------------------+---------------------------------------+
 | ``admin:list``    | table listing of model instances           | itemTable, headers, controls          |
 +-------------------+--------------------------------------------+---------------------------------------+
 | ``admin:listRow`` | table row displayed in list view           | linkText, extraCells                  |

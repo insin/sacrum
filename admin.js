@@ -1,6 +1,4 @@
-// =================================================================== Views ===
-
-// ------------------------------------------------------------- Admin Views ---
+// ============================================================= Admin Views ===
 
 /**
  * Views which use created ModelAdminView instances to display an admin section.
@@ -11,7 +9,7 @@ var AdminViews = Views.extend({
 , modelViews: []
 
 , init: function() {
-    this.log('init')
+    this.debug('init')
     this.el = document.getElementById('admin')
 
     // Automatically hook ap all ModelAdminViews which have been created
@@ -29,7 +27,7 @@ var AdminViews = Views.extend({
    * Lists models for which ModelAdminViews have been created.
    */
 , index: function() {
-    this.log('index')
+    this.debug('index')
     var models = []
     for (var i = 0, l = this.modelViews.length, mv; i < l; i++) {
       var mv = this.modelViews[i]
@@ -86,32 +84,17 @@ function ModelAdminViews(attrs) {
   Views.call(this, attrs)
 }
 inherits(ModelAdminViews, Views)
-
-/**
- * Creates a new object which extends ModelAdminViews, with the given
- * attributes.
- * @param {Object} attrs instance attributes.
- */
-ModelAdminViews.extend = function(attrs) {
-  console.log('AdminViews.extend', attrs.name)
-  var F = function(attrs) {
-    ModelAdminViews.call(this, attrs)
-  }
-  inherits(F, ModelAdminViews)
-  var views = new F(attrs)
-  // Push the new views to the base Views constructor so they will have their
-  // init method called by Views.initAll.
-  Views._created.push(views)
-  return views
-}
+ModelAdminViews.extend = Views.extend
 
 // ModelAdminViews default implementation
 extend(ModelAdminViews.prototype, {
+  name: 'ModelAdminViews'
+
   /**
    * Overrides render to pass in template variables which are required for CRUD
    * templates.
    */
-  render: function(templateName, context, events) {
+, render: function(templateName, context, events) {
     extend(context, {
       ns: this.namespace
     , model: this.storage.model._meta
@@ -124,7 +107,7 @@ extend(ModelAdminViews.prototype, {
    * Model instances by default.
    */
 , init: function() {
-    this.log('init')
+    this.debug('init')
     if (this.elementId) {
       this.el = document.getElementById(this.elementId)
     }
@@ -134,7 +117,7 @@ extend(ModelAdminViews.prototype, {
    * Displays a list of Model instances.
    */
 , list: function() {
-    this.log('list')
+    this.debug('list')
     var items = this.storage.all()
     this.display([this.namespace + ':admin:list', 'admin:list']
       , { items: items
@@ -148,7 +131,7 @@ extend(ModelAdminViews.prototype, {
    * Displays the selected Model's details.
    */
 , detail: function(id) {
-    this.log('detail')
+    this.debug('detail', id)
     item = this.storage.get(id)
     this.display([this.namespace + ':admin:detail', 'admin:detail']
       , { item: item
@@ -163,8 +146,7 @@ extend(ModelAdminViews.prototype, {
    * instance or redisplays the form with errorsif form data was given.
    */
 , add: function(data) {
-    console.log(arguments)
-    this.log('add')
+    this.debug('add', data)
     var form
     if (data) {
       form = this.form({data: data})
@@ -192,7 +174,7 @@ extend(ModelAdminViews.prototype, {
    * redisplays the form with errors if form data was given.
    */
 , edit: function(id, data) {
-    this.log('edit')
+    this.debug('edit', id, data)
     var item = this.storage.get(id)
       , form
     if (data) {
@@ -221,7 +203,7 @@ extend(ModelAdminViews.prototype, {
    * performs deletion if form data was given.
    */
 , delete_: function(id, data) {
-    this.log('preDelete')
+    this.debug('delete_', id, data)
     var item = this.storage.get(id)
     if (data) {
       this.storage.remove(item)
@@ -290,7 +272,7 @@ $template({name: 'admin:index', extend: 'admin:base'}, $block('contents'
   )
 ))
 
-// ----------------------------------------------------- AdminView Templates ---
+// ------------------------------------------------ ModelAdminView Templates ---
 
 /**
  * Creates a <colgroup> to ensure detail column headers are a particular width.
