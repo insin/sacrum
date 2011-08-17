@@ -40,15 +40,64 @@ function bind(fn, ctx) {
 }
 
 /**
- * Inherits another constructor's prototype without having to construct.
+ * Makes a constructor inherit another constructor's prototype without having
+ * to actually use the constructor.
  */
 function inherits(child, parent) {
   var F = function() {}
   F.prototype = parent.prototype
   child.prototype = new F()
   child.prototype.constructor = child
+  child.__super__ = parent.prototype
   return child
 }
+
+/**
+ * Inherits inherit another constructor's prototype sets its prototype and
+ * constructor properties in one fell swoop. If a child constructor is not
+ * provided via prototypeProps.constructor, a new constructor will be created
+ * for you.
+ */
+function subclass(parent, prototypeProps, constructorProps) {
+  var child
+  if (prototypeProps && prototypeProps.hasOwnProperty('constructor')) {
+    child = prototypeProps.constructor
+  } else {
+    // Create a new constructor if one wasn't given
+    child = function() { return parent.apply(this, arguments) }
+  }
+
+  // Inherit constructor properties
+  extend(child, parent)
+
+  // Inherit the parent's prototype
+  inherits(child, parent)
+
+  // Add prototype properties, if given
+  if (prototypeProps) {
+    extend(child.prototype, prototypeProps)
+  }
+
+  // Add constructor properties, if given
+  if (constructorProps) {
+    extend(child, constructorProps)
+  }
+
+  return child
+}
+
+/**
+ * Creates or uses a child constructor to inherit from the the call context
+ * object, which is expected to be a constructor.
+ */
+function extendConstructor(prototypeProps, constructorProps) {
+  var child = subclass(this, prototypeProps, constructorProps)
+  child.extend = this.extend
+  return child
+}
+
+// Assign extend cosnstructor functions to hoisted constructors
+Model.extend = Views.extend = extendConstructor
 
 /**
  * Copies properties from one object to another.
@@ -137,7 +186,6 @@ function formatObj(s, obj) {
 function Model(attrs) {
   extend(this, attrs)
 }
-
 
 // ----------------------------------------------- Model Storage / Retrieval ---
 
@@ -251,27 +299,6 @@ extend(forms.ModelInterface, {
  */
 function Views(attrs) {
   extend(this, attrs)
-}
-
-/**
- * Tracks views which have been created using Views.extend.
- */
-Views._created = []
-
-/**
- * Creates a new object which extends Views, with the given attributes.
- * @param {Object} attrs instance attributes.
- */
-Views.extend = function(attrs) {
-  var parent = this
-  this.prototype.debug('extend', attrs.name)
-  var F = function(attrs) {
-    parent.call(this, attrs)
-  }
-  inherits(F, parent)
-  var views = new F(attrs)
-  Views._created.push(views)
-  return views
 }
 
 Views.prototype.name = 'Views'

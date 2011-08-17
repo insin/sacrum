@@ -358,49 +358,49 @@ var TaskForm = forms.Form({
 
 // ------------------------------------------------------- Model Admin Views ---
 
-var UserAdminViews = ModelAdminViews.extend({
+var UserAdminViews = new ModelAdminViews({
   name: 'UserAdminViews'
 , namespace: 'users'
 , storage: Users
 , form: UserForm
 })
 
-var ProjectViews = ModelAdminViews.extend({
+var ProjectViews = new ModelAdminViews({
   name: 'ProjectAdminViews'
 , namespace: 'projects'
 , storage: Projects
 , form: ProjectForm
 })
 
-var PackageViews = ModelAdminViews.extend({
+var PackageViews = new ModelAdminViews({
   name: 'PackageAdminViews'
 , namespace: 'packages'
 , storage: Packages
 , form: PackageForm
 })
 
-var ReleaseViews = ModelAdminViews.extend({
+var ReleaseViews = new ModelAdminViews({
   name: 'ReleaseAdminViews'
 , namespace: 'releases'
 , storage: Releases
 , form: ReleaseForm
 })
 
-var IterationViews = ModelAdminViews.extend({
+var IterationViews = new ModelAdminViews({
   name: 'IterationAdminViews'
 , namespace: 'iterations'
 , storage: Iterations
 , form: IterationForm
 })
 
-var StoryViews = ModelAdminViews.extend({
+var StoryViews = new ModelAdminViews({
   name: 'StoryAdminViews'
 , namespace: 'stories'
 , storage: Stories
 , form: StoryForm
 })
 
-var TaskAdminViews = ModelAdminViews.extend({
+var TaskAdminViews = new ModelAdminViews({
   name: 'TaskAdminViews'
 , namespace: 'tasks'
 , storage: Tasks
@@ -702,9 +702,6 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
 
 window.onload = function() {
   AdminViews.init()
-  URLConf.patterns = patterns(null
-  ,  url('admin/', AdminViews.getURLs())
-  )
-  var startURL = resolve('/admin/')
-  startURL.func()
+  URLConf.patterns = [ url('admin/', AdminViews.getURLs()) ]
+  resolve('/admin/').func()
 }

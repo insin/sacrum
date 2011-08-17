@@ -102,14 +102,16 @@ display logic.
 
 ``Views(attrs)``
    Base constructor for objects containing functions which implement display and
-   control logic.
+   control logic. Use this constructor if you only need a singleton, settings its
+   view functions as instance attributes.
 
-   Generally, Views should be instantiated using ``Views.extend``.
+``Views.extend(prototypeProperties, constructorProperties)``
+   Creates a constructor which inherits from Views and sets its prototype and
+   constructor properties in one fell swoop, if provided.
 
-``Views.extend(attrs)``
-   Creates a ``Views`` instance using a passed-in object defining instance
-   attributes and keeps a record of instances which were created for later use
-   by ``Views.prototype.initAll()``.
+   If a child constructor is not provided via ``prototypeProps.constructor``, a
+   new constructor which calls ``Views(attrs)`` on instantiation will be created
+   for you.
 
 ``Views.prototype`` provides utility methods which expect the following instance
 attributes:
@@ -143,7 +145,6 @@ The following methods are available on ``Views.prototype``:
    ``display(templateName, context, events)``
       Renders a DOMBuilder template and makes the results the contents of this
       Views' element.
-
 
    ``log(...)``, ``warn(...)``, ``error(...)``
       Console logging methods, which include the Views' name in logs, passing
@@ -292,7 +293,7 @@ The following convenience accessors are added to ``DOMBuilder.template``:
        ))
      )
    )
-       
+
 
 .. _`DOMBuilder`: https://github.com/insin/DOMBuilder
 

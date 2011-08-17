@@ -3,28 +3,27 @@
 /**
  * Views which use created ModelAdminView instances to display an admin section.
  */
-var AdminViews = Views.extend({
+var AdminViews = new Views({
   name: 'AdminViews'
 
+  /** ModelAdminViews which have been registered for display. */
 , modelViews: []
 
 , init: function() {
     this.debug('init')
     this.el = document.getElementById('admin')
 
-    // Automatically hook ap all ModelAdminViews which have been created
-    for (var i = 0, l = Views._created.length; i < l; i++) {
-      if (Views._created[i] instanceof ModelAdminViews) {
-        var views = Views._created[i]
-        // Give all ModelAdminViews the same admin element to display content in
-        views.el = this.el
-        this.modelViews.push(views)
-      }
+    // Hook ap all ModelAdminViews which have been created
+    for (var i = 0, l = ModelAdminViews.instances.length; i < l; i++) {
+      var mv = ModelAdminViews.instances[i]
+      // Give all instances our element to display their content in
+      mv.el = this.el
+      this.modelViews.push(mv)
     }
   }
 
   /**
-   * Lists models for which ModelAdminViews have been created.
+   * Lists registered ModelAdminViews.
    */
 , index: function() {
     this.debug('index')
@@ -33,21 +32,23 @@ var AdminViews = Views.extend({
       var mv = this.modelViews[i]
       models.push({
         name: mv.storage.model._meta.namePlural
-      , listURL: reverse(format('admin_%s_list', mv.namespace))
+      , listURL: reverse(mv.urlName('list'))
       })
     }
     this.display('admin:index', {models: models})
   }
 
+  /**
+   * Creates a URL pattern for the index view and roots each ModelAdminViews
+   * instance under a URL based on its namespace.
+   */
 , getURLs: function() {
     var urlPatterns = patterns(this
       , url('', 'index', 'admin_index')
       )
     for (var i = 0, l = this.modelViews.length; i < l; i++) {
       var mv = this.modelViews[i]
-      urlPatterns = urlPatterns.concat(patterns(null
-        , url(format('%s/', mv.namespace), mv.getURLs())
-        ))
+      urlPatterns.push( url(format('%s/', mv.namespace), mv.getURLs()) )
     }
     return urlPatterns
   }
@@ -80,15 +81,13 @@ var AdminViews = Views.extend({
  * @constructor
  * @param {Object} attrs instance attributes.
  */
-function ModelAdminViews(attrs) {
-  Views.call(this, attrs)
-}
-inherits(ModelAdminViews, Views)
-ModelAdminViews.extend = Views.extend
+var ModelAdminViews = Views.extend({
+  constructor: function(attrs) {
+    ModelAdminViews.instances.push(this)
+    Views.call(this, attrs)
+  }
 
-// ModelAdminViews default implementation
-extend(ModelAdminViews.prototype, {
-  name: 'ModelAdminViews'
+, name: 'ModelAdminViews'
 
   /**
    * Overrides render to pass in template variables which are required for CRUD
@@ -114,6 +113,13 @@ extend(ModelAdminViews.prototype, {
   }
 
   /**
+   * Constructs a URL name based on this ModenAdminViews' namespace.
+   */
+, urlName: function(name) {
+    return 'admin_' + this.namespace + '_' + name
+  }
+
+  /**
    * Displays a list of Model instances.
    */
 , list: function() {
@@ -122,7 +128,7 @@ extend(ModelAdminViews.prototype, {
     this.display([this.namespace + ':admin:list', 'admin:list']
       , { items: items
         , rowTemplates: [this.namespace + ':admin:listRow', 'admin:listRow']
-        , addURL: reverse(format('admin_%s_add', this.namespace))
+        , addURL: reverse(this.urlName('add'))
         }
       )
   }
@@ -135,8 +141,8 @@ extend(ModelAdminViews.prototype, {
     item = this.storage.get(id)
     this.display([this.namespace + ':admin:detail', 'admin:detail']
       , { item: item
-        , editURL: reverse(format('admin_%s_edit', this.namespace), [id])
-        , deleteURL: reverse(format('admin_%s_delete', this.namespace), [id])
+        , editURL: reverse(this.urlName('edit'), [id])
+        , deleteURL: reverse(this.urlName('delete'), [id])
         }
       )
   }
@@ -161,8 +167,8 @@ extend(ModelAdminViews.prototype, {
     else {
       this.display([this.namespace + ':admin:add', 'admin:add']
         , { form: this.form()
-          , submitURL: reverse(format('admin_%s_add', this.namespace))
-          , cancelURL: reverse(format('admin_%s_list', this.namespace))
+          , submitURL: reverse(this.urlName('add'))
+          , cancelURL: reverse(this.urlName('list'))
           }
         )
     }
@@ -191,8 +197,8 @@ extend(ModelAdminViews.prototype, {
       this.display([this.namespace + ':admin:edit', 'admin:edit']
         , { item: item
           , form: this.form({initial: item})
-          , submitURL: reverse(format('admin_%s_edit', this.namespace), [id])
-          , cancelURL: reverse(format('admin_%s_detail', this.namespace), [id])
+          , submitURL: reverse(this.urlName('edit'), [id])
+          , cancelURL: reverse(this.urlName('detail'), [id])
           }
         )
     }
@@ -212,25 +218,28 @@ extend(ModelAdminViews.prototype, {
     else {
       this.display([this.namespace + ':admin:delete', 'admin:delete']
         , { item: item
-          , submitURL: reverse(format('admin_%s_delete', this.namespace), [id])
-          , cancelURL: reverse(format('admin_%s_detail', this.namespace), [id])
+          , submitURL: reverse(this.urlName('delete'), [id])
+          , cancelURL: reverse(this.urlName('detail'), [id])
           }
         )
     }
   }
 
   /**
-   * URL patterns which can be mounted at any desired URL using include().
+   * Creates URL patterns which can be rooted at any desired URL.
    */
 , getURLs: function() {
     return patterns(this
-    , url('',            'list',    'admin_' + this.namespace + '_list')
-    , url('add/',        'add',     'admin_' + this.namespace + '_add')
-    , url(':id/edit/',   'edit',    'admin_' + this.namespace + '_edit')
-    , url(':id/delete/', 'delete_', 'admin_' + this.namespace + '_delete')
-    , url(':id/',        'detail',  'admin_' + this.namespace + '_detail')
+    , url('',            'list',    this.urlName('list'))
+    , url('add/',        'add',     this.urlName('add'))
+    , url(':id/edit/',   'edit',    this.urlName('edit'))
+    , url(':id/delete/', 'delete_', this.urlName('delete'))
+    , url(':id/',        'detail',  this.urlName('detail'))
     )
   }
+}, {
+  /** Constructor property to track created instances. */
+  instances: []
 })
 
 // =============================================================== Templates ===
