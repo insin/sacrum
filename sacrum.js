@@ -259,17 +259,6 @@ function Views(attrs) {
 Views._created = []
 
 /**
- * Calls the init() function on each created Views object which has one.
- */
-Views.initAll = function() {
-  for (var i = 0, l = Views._created.length; i < l; i++) {
-    if (typeof Views._created[i].init == 'function') {
-      Views._created[i].init()
-    }
-  }
-}
-
-/**
  * Creates a new object which extends Views, with the given attributes.
  * @param {Object} attrs instance attributes.
  */

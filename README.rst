@@ -144,11 +144,6 @@ The following methods are available on ``Views.prototype``:
       Renders a DOMBuilder template and makes the results the contents of this
       Views' element.
 
-   ``initAll()``
-      Calls the ``init()`` on every Views instance which has been created which
-      has one. This is probably only useful for initial testing, as you'll
-      likely create an application Views instance to bootstrap things once you
-      get going.
 
    ``log(...)``, ``warn(...)``, ``error(...)``
       Console logging methods, which include the Views' name in logs, passing
