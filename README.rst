@@ -38,7 +38,7 @@ on other areas until I know what the long-term direction is here (see
         Model.call(this, attrs)
       }
       Vehicle.prototype.toString = function() {
-        return this.registration
+        return this.reg
       }
 
 ``Storage(model)``
@@ -426,7 +426,7 @@ registration and the number of wheels it has in the list template like so::
    )
 
    $template({name: 'vehicles:admin:listRow', extend: 'admin:listRow'}
-   , $block('linkText', '{{ item.registration }}')
+   , $block('linkText', '{{ item.reg }}')
    , $block('extraCells'
      , TD('{{ item.wheels }}')
      )
