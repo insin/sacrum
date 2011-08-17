@@ -102,11 +102,11 @@ display logic.
 
 ``Views(attrs)``
    Base constructor for objects containing functions which implement display and
-   control logic. Use this constructor if you only need a singleton, settings its
+   control logic. Use this constructor if you only need a singleton, setting its
    view functions as instance attributes.
 
 ``Views.extend(prototypeProperties, constructorProperties)``
-   Creates a constructor which inherits from Views and sets its prototype and
+   Creates a constructor which inherits from ``Views`` and sets its prototype and
    constructor properties in one fell swoop, if provided.
 
    If a child constructor is not provided via ``prototypeProps.constructor``, a
@@ -146,7 +146,7 @@ The following methods are available on ``Views.prototype``:
       Renders a DOMBuilder template and makes the results the contents of this
       Views' element.
 
-   ``log(...)``, ``warn(...)``, ``error(...)``
+   ``log(...)``, ``debug(...)``, ``warn(...)``, ``error(...)``
       Console logging methods, which include the Views' name in logs, passing
       all given arguments to console logging functions.
 
@@ -168,23 +168,24 @@ The following methods are available on ``Views.prototype``:
      // ...
    })
 
-URLs
-----
+URLConf
+-------
 
-URL patterns can be used to map URLs to views, capturing named parameters
-in the process, and to reverse-resolve a URL name and parameters to a URL.
+URL patterns can be configured  to map URLs to views, capturing named parameters
+in the process, and to reverse-resolve a URL name and parameters to obtain
+a URL.
 
 ``URLConf``
-   Application URL patterns should be set in ``URLConf.patterns`` for
-   resolution.
+   Application URL configuration should be set in ``URLConf.patterns``, which
+   should contain a list of pattens for resolution.
 
 ``patterns(context, patterns...)``
    Creates a list of URL patterns, which can be specified using the ``url``
-   function or an array with the same contents as that function's arguments.
+   function or a list of [pattern, view, urlName].
 
-   View names can be specified as strings to be looked up from a context object
-   (usually a ``Views`` instance), which should be passed as the first argument
-   in that case, otherwise it should be ``null`` or falsy.
+   View function names can be specified as strings to be looked up from a
+   context object (usually a ``Views`` instance), which should be passed as the
+   first argument in that case, otherwise it should be ``null`` or falsy.
 
 ``url(pattern, view, urlName)``
    Creates a URL pattern or roots a list of patterns to the given pattern if
@@ -227,7 +228,7 @@ in the process, and to reverse-resolve a URL name and parameters to a URL.
 
 ::
 
-   var VehicleViews = Views.extend({
+   var VehicleViews = new Views({
      // ...
 
    , index: function() {
@@ -249,6 +250,8 @@ in the process, and to reverse-resolve a URL name and parameters to a URL.
 
      // ..
    })
+
+   URLConf.patterns = VehicleViews.getURLs()
 
 Templates
 ---------
