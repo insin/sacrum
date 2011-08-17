@@ -9,7 +9,7 @@ development, so watch this space.
 The sample application for Sacrum is `Fragile`_ - it serves as the test-bed
 and proving ground for new features, components and ideas.
 
-.. _`Fragile`: http://bit.ly/n1NZUa
+.. _`Fragile`: http://jonathan.buchanan153.users.btopenworld.com/sacrum/fragile/fragile.html
 
 Components
 ==========
