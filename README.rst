@@ -3,7 +3,7 @@ Sacrum
 ======
 
 Sacrum is *another* helper for writing single-page (and beyond!) JavaScript
-applications... more on that in the future, for now it's under inital
+applications... more on that in the future, for now it's under initial
 development, so watch this space.
 
 The sample application for Sacrum is `Fragile`_ - it serves as the test-bed
@@ -198,7 +198,7 @@ in the process, and to reverse-resolve a URL name and parameters to a URL.
    Patterns:
 
    * Should not start with a leading slash, but should end with a trailing slash
-     if being used to root other patterns, othewrwise to yor own taste.
+     if being used to root other patterns, otherwise to your own taste.
 
    * Can identify named parameters to be extracted from resolved URLS using a
      leading ``:``, e.g.::
@@ -244,7 +244,7 @@ in the process, and to reverse-resolve a URL name and parameters to a URL.
      }
 
    , getURLs: function() {
-       return patterns(this,
+       return patterns(this
        , url('',      'index',   'vehicle_index')
        , url('list/', 'list',    'vehicle_list')
        , url(':id/',  'details', 'vehicle_details')
@@ -270,7 +270,7 @@ templates and the following additional helpers are also provided.
   to the template context under the given variable name, otherwise it will be
   returned.
 
-The following convenience accesors are added to ``DOMBuilder.template``:
+The following convenience accessors are added to ``DOMBuilder.template``:
 
 ``$resolve``
    A reference to ``handleURLChange(e)``
@@ -322,7 +322,7 @@ a basic admin section.
 ``AdminViews`` contains the following properties and functions:
 
    ``init()``
-      Initialise's the view element and registers all ModelAdminViews which
+      Initialises the view element and registers all ModelAdminViews which
       have been created so far.
 
    ``modelViews`` (Array)
@@ -414,7 +414,7 @@ its templates, you just need to define a template named using your own, leading,
 namespace.
 
 In our Vehicles example, you could extend these templates to display a vehicle's
-registration and the number of wheels it has in the list template like so::
+registration and the number of wheels it has in the list template, like so::
 
    with (DOMBuilder.template) {
 
