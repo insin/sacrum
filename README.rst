@@ -278,6 +278,27 @@ The following convenience accesors are added to ``DOMBuilder.template``:
 ``$url(urlName, args, options)``
   Creates a URLNode.
 
+::
+
+   $template('vehicleList'
+   , TABLE({'class': 'list'}
+     , THEAD(TR(
+         TH('Registration')
+       , TH('# Wheels')
+       ))
+     , TBODY($for('vehicle in vehicles'
+       , $url('vehicle_details', ['{{ vehicle.id }}'], {as: 'detailsURL'})
+       , TR({'class': $cycle(['odd', 'even'])}
+         , TD(
+             A({href: '{{ detailsURL }}', click: $resolve}, '{{ vehicle.reg }}')
+           )
+         , TD('{{ vehicle.wheels }}')
+         )
+       ))
+     )
+   )
+       
+
 .. _`DOMBuilder`: https://github.com/insin/DOMBuilder
 
 History
