@@ -16,10 +16,10 @@ function replace(el, content) {
     el = document.getElementById(el)
   }
   el.innerHTML = ''
-  if (content instanceof Array) {
+  if (isArray(content)) {
     content = DOMBuilder.fragment(content)
   }
-  else if (typeof content == 'string') {
+  else if (isString(content)) {
     content = document.createTextNode(content)
   }
   el.appendChild(content)
