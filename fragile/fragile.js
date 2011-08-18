@@ -582,12 +582,14 @@ $template({name: 'stories:admin:listRow', extend: 'admin:listRow'}
 
 $template({name: 'stories:admin:detail', extend: 'admin:detail'}
 , $block('detailRows'
-  , section('General', [ ['ID'         , 'id'                ]
-                       , ['Name'       , 'name'              ]
-                       , ['Description', 'descriptionDisplay']
-                       , ['Owner'      , 'owner'             , 'Package', 'package']
-                       , ['Project'    , 'project'           ]
-                       ])
+  , section('General',
+        [ ['ID'         , 'id'                ]
+        , ['Name'       , 'name'              ]
+        , ['Description', 'descriptionDisplay']
+        , ['Owner'      , 'owner'             , 'Package', 'package']
+        , ['Project'    , 'project'           ]
+        ]
+      )
 
   , section('Story',
         [ ['Parent', 'parent'] ]
