@@ -2,9 +2,18 @@
 Sacrum
 ======
 
-Sacrum is *another* helper for writing single-page (and beyond!) JavaScript
-applications... more on that in the future, for now it's under initial
-development, so watch this space.
+*Sacrum is under initial, heavy development, but it's at the stage where I believe the core
+concept is proved out - this is what it's going to be:*
+
+Sacrum provides components and conventions for writing single-page JavaScript apps which also
+run on Node.js for almost-free as good ol' forms 'n links webapps, allowing you to ditch the
+hashbangs and **use real URLs like TBL intended**, without having to expend significant effort
+on a separate backend and without leaving user agents which Don't Do JavaScript out in the cold.
+
+It gives you a baseline from which to progressively enhance for those who Definitely Do Do
+JavaScript by running the JavaScript everybody else can't or won't run for them.
+
+----
 
 The sample application for Sacrum is `Fragile`_ - it serves as the test-bed
 and proving ground for new features, components and ideas.
@@ -146,7 +155,7 @@ and display logic.
 
    ``name`` *(String)*
       Name for the collection of view functions.
-      
+
       For example, if you have a bunch of view functions which handle listing
       and editing ``Vehicle`` objects, a logical name would be ``'VehicleViews'``.
 
