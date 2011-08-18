@@ -2,7 +2,7 @@
 Sacrum
 ======
 
-*Sacrum is under initial, heavy development, but it's at the stage where I
+*Sacrum is still under initial development, but it's at the stage where I
 believe the core concept is proved out - this is what it's going to be:*
 
 Sacrum provides components and conventions for writing single-page JavaScript
@@ -23,11 +23,14 @@ and proving ground for new features, components and ideas.
 .. _`Node.js`: http://nodejs.org
 .. _`Fragile`: http://jonathan.buchanan153.users.btopenworld.com/sacrum/fragile/fragile.html
 
-Dependencies
-============
+Dependencies & Demo
+===================
 
-*The required versions aren't yet available in npm for Node.js due to Cygwin
-being FUBAR*
+Browser dependencies are bundled in the ``lib/`` directory.
+
+Node.js dependencies are available via `npm`_. If you're cloning this repo,
+run ``npm install -d`` to install them locally in a ``node_modules``
+directory.
 
 - `DOMBuilder`_ (>= 2.1.0 alpha1) is required for templating in code with
   template inheritance, generating DOM Elements and registering event handlers on
@@ -37,6 +40,15 @@ being FUBAR*
 - `newforms`_ (>= 0.0.4 alpha1) is required for form display, user input
   validation and type coercion. It also requires DOMBuilder for rendering across
   environments.
+
+- `express`_ (2.*) is being used to hook the sample application up in Node.js.
+
+  Run ``node server.js`` to bring it up and open http://localhost:8000/admin/
+  in a browser. Now disable JavaScript and notice how you're still able to
+  navigate and use the (bits of the) app (which have been implemented so far).
+
+.. _`npm`: http://npmjs.org
+.. _`express`: http://expressjs.com
 
 Sacrum Components
 =================
