@@ -312,7 +312,7 @@ extend(forms.ModelInterface, {
  * specialised base constructor, such as ModelAdminViews.
  *
  * The base Views object provides functionality which expects the following
- * instance attributes:
+ * instance properties:
  *
  * name (required)
  *    Name for the collection of view functions - for example, if you have a
@@ -326,10 +326,10 @@ extend(forms.ModelInterface, {
  * them until the Views' init() method is called, if appropriate.
  *
  * @constructor
- * @param {Object} attrs instance attributes.
+ * @param {Object} props instance properties.
  */
-function Views(attrs) {
-  extend(this, attrs)
+function Views(props) {
+  extend(this, props)
 }
 
 Views.prototype.name = 'Views'

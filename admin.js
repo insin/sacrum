@@ -70,16 +70,12 @@ var AdminViews = new Views({
 /**
  * Views which take care of some of the repetitive work involved in creating
  * basic CRUD functionality for a particular Model. This specialised version of
- * Views expects to find the following instance attributes:
+ * Views expects to find the following instance properties:
  *
  *    namespace
  *       Unique namespace for the instance - used in base CRUD templates to
  *       ensure created element ids are unique and when looking up templates
  *       which override the base templates.
- *
- *    elementId (Optional)
- *       The id of the elements in which content should be displayed, if
- *       appropriate.
  *
  *    storage
  *       A Storage object used to create, retrieve, update and delete Model
@@ -89,13 +85,17 @@ var AdminViews = new Views({
  *       A Form used to take and validate user input when creating and updating
  *       Model instances.
  *
+ *    elementId (Optional)
+ *       The id of the elements in which content should be displayed, if
+ *       appropriate.
+ *
  * @constructor
- * @param {Object} attrs instance attributes.
+ * @param {Object} props instance properties.
  */
 var ModelAdminViews = Views.extend({
-  constructor: function(attrs) {
+  constructor: function(props) {
     ModelAdminViews.instances.push(this)
-    Views.call(this, attrs)
+    Views.call(this, props)
   }
 
 , name: 'ModelAdminViews'

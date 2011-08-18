@@ -17,8 +17,8 @@ test('Model.extend', function() {
   ok(Test.prototype._meta instanceof ModelOptions, 'ModelOptions object exposed as prototype._meta')
   ok(Test._meta instanceof ModelOptions, 'ModelOptions object exposed as constructor._meta')
   strictEqual(Test.prototype._meta, Test._meta, 'ModelOptions object is the same on prototype and constructor')
-  equal(Test._meta.name, 'Test', '_meta name attribute set')
-  equal(Test._meta.namePlural, 'Tests', '_meta namePlural attribute defaults to name + "s"')
+  equal(Test._meta.name, 'Test', '_meta name property set')
+  equal(Test._meta.namePlural, 'Tests', '_meta namePlural property defaults to name + "s"')
 
   // Minimal information for extending a Model
   var Test = Model.extend({
@@ -27,7 +27,7 @@ test('Model.extend', function() {
     , namePlural: 'Testies'
     }
   })
-  equal(Test._meta.namePlural, 'Testies', '_meta namePlural attribute set if given')
+  equal(Test._meta.namePlural, 'Testies', '_meta namePlural property set if given')
 })
 
 }()

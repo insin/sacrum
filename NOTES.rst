@@ -62,7 +62,7 @@ Event Handlers
 
 - Define events as paths to event handling functions rather than functions
   themselves.
-- DOMBuilder HTML mode event handling helpers will automatically craete IDs on
+- DOMBuilder HTML mode event handling helpers will automatically create IDs on
   any elements which have event attribtues defined.
 - Given the same code will be available in the browser, should be possible to
   hook the appropriate handlers up based on a combination of the above, plus any
