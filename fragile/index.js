@@ -27,7 +27,7 @@ $template('fragile:base'
         , innerHTML:
             'Fragile is the example app for <a href="https://github.com/insin/sacrum">Sacrum</a>, ' +
             'which provides components and conventions for writing single-page JavaScript apps ' +
-            'which also run on Node.js for almost-free as good ol\' forms \'n links webapps.')
+            'which also run on Node.js for almost-free as good ol\' forms \'n links webapps.'
         })
     , P({ id: 'info'
         , innerHTML:
