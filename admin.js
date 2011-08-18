@@ -13,6 +13,7 @@ var DOMBuilder = (server ? require('DOMBuilder') : __global__.DOMBuilder)
  */
 var AdminViews = new Views({
   name: 'AdminViews'
+, elementId: 'admin'
 
   /** ModelAdminViews which have been registered for display. */
 , modelViews: []
@@ -20,7 +21,7 @@ var AdminViews = new Views({
 , init: function() {
     this.log('init')
     if (!server) {
-      this.el = document.getElementById('admin')
+      this.el = document.getElementById(this.elementId)
     }
 
     // Hook ap all ModelAdminViews which have been created
