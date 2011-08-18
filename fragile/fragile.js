@@ -42,11 +42,7 @@ function formatDate(d) {
 // -------------------------------------------------------------------- User ---
 
 var User = Model.extend({
-  _meta: {
-    name: 'User'
-  , namePlural: 'Users'
-  }
-, toString: function() {
+  toString: function() {
     return this.displayName
   }
 , profileImageDisplay: function() {
@@ -55,46 +51,37 @@ var User = Model.extend({
     }
     return ''
   }
+, Meta: {
+    name: 'User'
+  }
 })
-
-User._meta = User.prototype._meta
 
 // ----------------------------------------------------------------- Project ---
 
 var Project = Model.extend({
-  _meta: {
-    name: 'Project'
-  , namePlural: 'Projects'
-  }
-, toString: function() {
+  toString: function() {
     return this.name
   }
+, Meta: {
+    name: 'Project'
+  }
 })
-
-Project._meta = Project.prototype._meta
 
 // ----------------------------------------------------------------- Package ---
 
 var Package = Model.extend({
-  _meta: {
-    name: 'Package'
-  , namePlural: 'Packages'
-  }
-, toString: function() {
+  toString: function() {
     return this.name
   }
+, Meta: {
+    name: 'Package'
+  }
 })
-
-Package._meta = Package.prototype._meta
 
 // ----------------------------------------------------------------- Release ---
 
 var Release = Model.extend({
-  _meta: {
-    name: 'Release'
-  , namePlural: 'Releases'
-  }
-, toString: function() {
+  toString: function() {
     return this.name
   }
 , themeDisplay: function() {
@@ -112,9 +99,10 @@ var Release = Model.extend({
 , notesDisplay: function() {
     return lineBreaks(this.notes)
   }
+, Meta: {
+    name: 'Release'
+  }
 })
-
-Release._meta = Release.prototype._meta
 
 Release.States = { PLANNING: 'P'
                  , ACTIVE:   'X'
@@ -129,11 +117,7 @@ Release.StateChoices = [ [Release.States.PLANNING, 'Planning']
 // --------------------------------------------------------------- Iteration ---
 
 var Iteration = Model.extend({
-  _meta: {
-    name: 'Iteration'
-  , namePlural: 'Iterations'
-  }
-, toString: function() {
+  toString: function() {
     return this.name
   }
 , themeDisplay: function() {
@@ -151,9 +135,10 @@ var Iteration = Model.extend({
 , notesDisplay: function() {
     return lineBreaks(this.notes)
   }
+, Meta: {
+    name: 'Iteration'
+  }
 })
-
-Iteration._meta = Iteration.prototype._meta
 
 Iteration.States = { PLANNING:  'P'
                    , COMMITTED: 'C'
@@ -167,11 +152,7 @@ Iteration.StateChoices = [ [Iteration.States.PLANNING,  'Planning']
 // ------------------------------------------------------------------- Story ---
 
 var Story = Model.extend({
-  _meta: {
-    name: 'Story'
-  , namePlural: 'Stories'
-  }
-, toString: function() {
+  toString: function() {
     return this.name
   }
 , stateDisplay: function() {
@@ -186,9 +167,11 @@ var Story = Model.extend({
 , notesDisplay: function() {
     return lineBreaks(this.notes)
   }
+, Meta: {
+    name: 'Story'
+  , namePlural: 'Stories'
+  }
 })
-
-Story._meta = Story.prototype._meta
 
 Story.States = { SCOPED:      'S'
                , DEFINED:     'D'
@@ -207,11 +190,7 @@ Story.StateChoices = [ [Story.States.SCOPED,      'Scoped']
 // -------------------------------------------------------------------- Task ---
 
 var Task = Model.extend({
-  _meta: {
-    name: 'Task'
-  , namePlural: 'Tasks'
-  }
-, toString: function() {
+  toString: function() {
     return this.name
   }
 , getProject: function() {
@@ -229,9 +208,10 @@ var Task = Model.extend({
 , notesDisplay: function() {
     return lineBreaks(this.notes)
   }
+, Meta: {
+    name: 'Task'
+  }
 })
-
-Task._meta = Task.prototype._meta
 
 Task.States = { DEFINED:     'D'
               , IN_PROGRESS: 'P'

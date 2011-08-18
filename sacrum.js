@@ -101,8 +101,24 @@ function extendConstructor(prototypeProps, constructorProps) {
   return child
 }
 
-// Assign extend cosnstructor functions to hoisted constructors
-Model.extend = Views.extend = extendConstructor
+/**
+ * Special case extension function for Models - prototypeProps is required and
+ * is expected to contain a Meta property containing Model options, defining at
+ * least a name property.
+ */
+function extendModelConstructor(prototypeProps, constructorProps) {
+  // Prepare ModelOptions for the extended Model
+  constructorProps = constructorProps || {}
+  var options = new ModelOptions(prototypeProps.Meta)
+  delete prototypeProps.Meta
+  prototypeProps._meta = constructorProps._meta = options
+
+  return extendConstructor.call(this, prototypeProps, constructorProps)
+}
+
+// Assign extend constructor functions to hoisted constructors
+Views.extend = extendConstructor
+Model.extend = extendModelConstructor
 
 /**
  * Copies properties from one object to another.
@@ -188,8 +204,17 @@ function formatObj(s, obj) {
 /**
  * Base constructor for models - doesn't actually do much yet.
  */
-function Model(attrs) {
-  extend(this, attrs)
+function Model(props) {
+  extend(this, props)
+}
+
+/**
+ * Meta-info about a model.
+ */
+function ModelOptions(meta) {
+  this.meta = meta
+  this.name = meta.name
+  this.namePlural = meta.namePlural || format('%ss', meta.name)
 }
 
 // ----------------------------------------------- Model Storage / Retrieval ---
@@ -780,6 +805,7 @@ var Sacrum = {
   , formatObj: formatObj
   }
 , Model: Model
+, ModelOptions: ModelOptions
 , Storage: Storage
 , Query: Query
 , Views: Views

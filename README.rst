@@ -30,16 +30,38 @@ on other areas until I know what the long-term direction is here (see
    Base constructor for data types. Sets initial attributes, otherwise just a
    marker at the moment.
 
-   Don't forget to add a ``toString`` method to any constructors which extend
-   Model::
+``Model.extend(prototypeProps, constructorProps)``
+   Creates a constructor which inherits from ``Model`` and sets its prototype and
+   constructor properties in one fell swoop.
 
-      inherits(Vehicle, Model)
-      function Vehicle(attrs) {
-        Model.call(this, attrs)
-      }
-      Vehicle.prototype.toString = function() {
-        return this.reg
-      }
+   The ``prototypeProps`` argument is **required** and is expected to contain, at
+   the very least, a ``Meta`` object which contains the model's name.
+
+   If a child constructor is not provided via ``prototypeProps.constructor``, a
+   new constructor which calls ``Model(attrs)`` on instantiation will be created
+   for you.
+
+   Extended Model constructors and prototypes will have a _meta property which is
+   a ``ModelOptions`` object, with the following properties:
+
+      ``name``
+         The Model's name
+
+      ``namePlural``
+         Plural form of the Model's name - if not provided in the Meta object,
+         this will be defaulted to ``name`` followed by an ``'s'``.
+
+   P.S. Don't forget to add a ``toString`` method to the prototype when extending
+   ``Model``, to define its default display::
+
+      var Vehicle = Model.extend({
+        toString: function() {
+          return this.reg
+        }
+      , Meta: {
+          name: 'Vehicle'
+        }
+      })
 
 ``Storage(model)``
 

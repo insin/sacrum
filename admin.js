@@ -100,7 +100,7 @@ var ModelAdminViews = Views.extend({
 , name: 'ModelAdminViews'
 
   /**
-   * Overrides render to pass in template variables which are required for CRUD
+   * Overrides render to pass in template variables which are required for Admin
    * templates.
    */
 , render: function(templateName, context, events) {
