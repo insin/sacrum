@@ -41,16 +41,12 @@ function formatDate(d) {
 
 // -------------------------------------------------------------------- User ---
 
-function User(attrs) {
-  Model.call(this, attrs)
-}
-inherits(User, Model)
-User._meta = User.prototype._meta = {
-  name: 'User'
-, namePlural: 'Users'
-}
-extend(User.prototype, {
-  toString: function() {
+var User = Model.extend({
+  _meta: {
+    name: 'User'
+  , namePlural: 'Users'
+  }
+, toString: function() {
     return this.displayName
   }
 , profileImageDisplay: function() {
@@ -61,54 +57,44 @@ extend(User.prototype, {
   }
 })
 
+User._meta = User.prototype._meta
+
 // ----------------------------------------------------------------- Project ---
 
-function Project(attrs) {
-  Model.call(this, attrs)
-}
-inherits(Project, Model)
-Project._meta = Project.prototype._meta = {
-  name: 'Project'
-, namePlural: 'Projects'
-}
-Project.prototype.toString = function() {
-  return this.name
-}
+var Project = Model.extend({
+  _meta: {
+    name: 'Project'
+  , namePlural: 'Projects'
+  }
+, toString: function() {
+    return this.name
+  }
+})
+
+Project._meta = Project.prototype._meta
 
 // ----------------------------------------------------------------- Package ---
 
-inherits(Package, Model)
-function Package(attrs) {
-  Model.call(this, attrs)
-}
-Package._meta = Package.prototype._meta = {
-  name: 'Package'
-, namePlural: 'Packages'
-}
-Package.prototype.toString = function() {
-  return this.name
-}
+var Package = Model.extend({
+  _meta: {
+    name: 'Package'
+  , namePlural: 'Packages'
+  }
+, toString: function() {
+    return this.name
+  }
+})
+
+Package._meta = Package.prototype._meta
 
 // ----------------------------------------------------------------- Release ---
 
-function Release(attrs) {
-  Model.call(this, attrs)
-}
-inherits(Release, Model)
-Release._meta = Release.prototype._meta = {
-  name: 'Release'
-, namePlural: 'Releases'
-}
-Release.States = { PLANNING: 'P'
-                 , ACTIVE:   'X'
-                 , ACCEPTED: 'A'
-                 }
-Release.StateChoices = [ [Release.States.PLANNING, 'Planning']
-                       , [Release.States.ACTIVE,   'Active']
-                       , [Release.States.ACCEPTED, 'Accepted']
-                       ]
-extend(Release.prototype, {
-  toString: function() {
+var Release = Model.extend({
+  _meta: {
+    name: 'Release'
+  , namePlural: 'Releases'
+  }
+, toString: function() {
     return this.name
   }
 , themeDisplay: function() {
@@ -128,26 +114,26 @@ extend(Release.prototype, {
   }
 })
 
+Release._meta = Release.prototype._meta
+
+Release.States = { PLANNING: 'P'
+                 , ACTIVE:   'X'
+                 , ACCEPTED: 'A'
+                 }
+
+Release.StateChoices = [ [Release.States.PLANNING, 'Planning']
+                       , [Release.States.ACTIVE,   'Active']
+                       , [Release.States.ACCEPTED, 'Accepted']
+                       ]
+
 // --------------------------------------------------------------- Iteration ---
 
-function Iteration(attrs) {
-  Model.call(this, attrs)
-}
-inherits(Iteration, Model)
-Iteration._meta = Iteration.prototype._meta = {
-  name: 'Iteration'
-, namePlural: 'Iterations'
-}
-Iteration.States = { PLANNING:  'P'
-                   , COMMITTED: 'C'
-                   , ACCEPTED:  'A'
-                   }
-Iteration.StateChoices = [ [Iteration.States.PLANNING,  'Planning']
-                         , [Iteration.States.COMMITTED, 'Committed']
-                         , [Iteration.States.ACCEPTED,  'Accepted']
-                         ]
-extend(Iteration.prototype, {
-  toString: function() {
+var Iteration = Model.extend({
+  _meta: {
+    name: 'Iteration'
+  , namePlural: 'Iterations'
+  }
+, toString: function() {
     return this.name
   }
 , themeDisplay: function() {
@@ -167,30 +153,25 @@ extend(Iteration.prototype, {
   }
 })
 
+Iteration._meta = Iteration.prototype._meta
+
+Iteration.States = { PLANNING:  'P'
+                   , COMMITTED: 'C'
+                   , ACCEPTED:  'A'
+                   }
+Iteration.StateChoices = [ [Iteration.States.PLANNING,  'Planning']
+                         , [Iteration.States.COMMITTED, 'Committed']
+                         , [Iteration.States.ACCEPTED,  'Accepted']
+                         ]
+
 // ------------------------------------------------------------------- Story ---
 
-function Story(attrs) {
-  Model.call(this, attrs)
-}
-inherits(Story, Model)
-Story._meta = Story.prototype._meta = {
-  name: 'Story'
-, namePlural: 'Stories'
-}
-Story.States = { SCOPED:      'S'
-               , DEFINED:     'D'
-               , IN_PROGRESS: 'P'
-               , COMPLETED:   'C'
-               , ACCEPTED:    'A'
-               }
-Story.StateChoices = [ [Story.States.SCOPED,      'Scoped']
-                     , [Story.States.DEFINED,     'Defined']
-                     , [Story.States.IN_PROGRESS, 'In-Progress']
-                     , [Story.States.COMPLETED,   'Completed']
-                     , [Story.States.ACCEPTED,    'Accepted']
-                     ]
-extend(Story.prototype, {
-  toString: function() {
+var Story = Model.extend({
+  _meta: {
+    name: 'Story'
+  , namePlural: 'Stories'
+  }
+, toString: function() {
     return this.name
   }
 , stateDisplay: function() {
@@ -207,26 +188,30 @@ extend(Story.prototype, {
   }
 })
 
+Story._meta = Story.prototype._meta
+
+Story.States = { SCOPED:      'S'
+               , DEFINED:     'D'
+               , IN_PROGRESS: 'P'
+               , COMPLETED:   'C'
+               , ACCEPTED:    'A'
+               }
+
+Story.StateChoices = [ [Story.States.SCOPED,      'Scoped']
+                     , [Story.States.DEFINED,     'Defined']
+                     , [Story.States.IN_PROGRESS, 'In-Progress']
+                     , [Story.States.COMPLETED,   'Completed']
+                     , [Story.States.ACCEPTED,    'Accepted']
+                     ]
+
 // -------------------------------------------------------------------- Task ---
 
-function Task(attrs) {
-  Model.call(this, attrs)
-}
-inherits(Task, Model)
-Task._meta = Task.prototype._meta = {
-  name: 'Task'
-, namePlural: 'Tasks'
-}
-Task.States = { DEFINED:     'D'
-              , IN_PROGRESS: 'P'
-              , COMPLETED:   'C'
-              }
-Task.StateChoices = [ [Task.States.DEFINED,     'Defined']
-                    , [Task.States.IN_PROGRESS, 'In-Progress']
-                    , [Task.States.COMPLETED,   'Completed']
-                    ]
-extend(Task.prototype, {
-  toString: function() {
+var Task = Model.extend({
+  _meta: {
+    name: 'Task'
+  , namePlural: 'Tasks'
+  }
+, toString: function() {
     return this.name
   }
 , getProject: function() {
@@ -245,6 +230,18 @@ extend(Task.prototype, {
     return lineBreaks(this.notes)
   }
 })
+
+Task._meta = Task.prototype._meta
+
+Task.States = { DEFINED:     'D'
+              , IN_PROGRESS: 'P'
+              , COMPLETED:   'C'
+              }
+
+Task.StateChoices = [ [Task.States.DEFINED,     'Defined']
+                    , [Task.States.IN_PROGRESS, 'In-Progress']
+                    , [Task.States.COMPLETED,   'Completed']
+                    ]
 
 // ----------------------------------------------- Model Storage / Retrieval ---
 
