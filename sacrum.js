@@ -23,6 +23,7 @@ function replace(el, content) {
     content = document.createTextNode(content)
   }
   el.appendChild(content)
+  return el
 }
 
 /**
@@ -362,7 +363,11 @@ Views.prototype.render = function(templateName, context, events) {
  * Renders a template and displays the results in this Views' element.
  */
 Views.prototype.display = function(templateName, context, events) {
-  return replace(this.el, this.render(templateName, context, events))
+  var contents = this.render(templateName, context, events)
+  if (server) {
+    return contents
+  }
+  return replace(this.el, contents)
 }
 
 /**

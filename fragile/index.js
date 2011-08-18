@@ -5,11 +5,6 @@ var Sacrum = require('../sacrum')
   , Fragile = require('./fragile')
   , DOMBuilder = require('DOMBuilder')
 
-// Monkey-patch the display() method to just call render()
-Sacrum.Views.prototype.display = function(templateName, context, events) {
-  return this.render(templateName, context, events)
-}
-
 !function() { with (DOMBuilder.template) {
 
 // Define a full-page base template
