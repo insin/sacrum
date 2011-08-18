@@ -1,4 +1,14 @@
+!function(__global__, server) {
+
 // =============================================================== Utilities ===
+
+var DOMBuilder = (server ? require('DOMBuilder') : __global__.DOMBuilder)
+  , forms = (server ? require('newforms') : __global__.forms)
+  , Sacrum = (server ? require('../index') : __global__.Sacrum)
+  , extend = Sacrum.util.extend , inherits = Sacrum.util.inherits
+  , Model = Sacrum.Model , Storage = Sacrum.Storage
+  , URLConf = Sacrum.URLConf, url = Sacrum.url , resolve = Sacrum.resolve
+  , AdminViews = Sacrum.Admin.AdminViews, ModelAdminViews = Sacrum.Admin.ModelAdminViews
 
 /**
  * Replaces linebreaks with <br> elements for display.
@@ -365,35 +375,35 @@ var UserAdminViews = new ModelAdminViews({
 , form: UserForm
 })
 
-var ProjectViews = new ModelAdminViews({
+var ProjectAdminViews = new ModelAdminViews({
   name: 'ProjectAdminViews'
 , namespace: 'projects'
 , storage: Projects
 , form: ProjectForm
 })
 
-var PackageViews = new ModelAdminViews({
+var PackageAdminViews = new ModelAdminViews({
   name: 'PackageAdminViews'
 , namespace: 'packages'
 , storage: Packages
 , form: PackageForm
 })
 
-var ReleaseViews = new ModelAdminViews({
+var ReleaseAdminViews = new ModelAdminViews({
   name: 'ReleaseAdminViews'
 , namespace: 'releases'
 , storage: Releases
 , form: ReleaseForm
 })
 
-var IterationViews = new ModelAdminViews({
+var IterationAdminViews = new ModelAdminViews({
   name: 'IterationAdminViews'
 , namespace: 'iterations'
 , storage: Iterations
 , form: IterationForm
 })
 
-var StoryViews = new ModelAdminViews({
+var StoryAdminViews = new ModelAdminViews({
   name: 'StoryAdminViews'
 , namespace: 'stories'
 , storage: Stories
@@ -698,10 +708,54 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
     , t1 = Tasks.add(new Task({name: 'Task 1', state: Task.States.IN_PROGRESS, estimate: 15.0, actuals: 5.0, todo: 10.0, story: s1, owner: u1, rank: 2.0}))
 }()
 
-// ============================================================== Initialise ===
+// ===================================================== Export / Initialise ===
 
-window.onload = function() {
+function init() {
   AdminViews.init()
   URLConf.patterns = [ url('admin/', AdminViews.getURLs()) ]
-  resolve('/admin/').func()
 }
+
+var Fragile = {
+  util: {
+    lineBreaks: lineBreaks
+  , formatDate: formatDate
+  }
+, User: User
+, Project: Project
+, Release: Release
+, Iteration: Iteration
+, Story: Story
+, Task: Task
+, Users: Users
+, Projects: Projects
+, Releases: Releases
+, Iterations: Iterations
+, Stories: Stories
+, Tasks: Tasks
+, UserForm: UserForm
+, ProjectForm: ProjectForm
+, ReleaseForm: ReleaseForm
+, IterationForm: IterationForm
+, StoryForm: StoryForm
+, TaskForm: TaskForm
+, UserAdminViews: UserAdminViews
+, ProjectAdminViews: ProjectAdminViews
+, ReleaseAdminViews: ReleaseAdminViews
+, IterationAdminViews: IterationAdminViews
+, StoryAdminViews: StoryAdminViews
+, TaskAdminViews: TaskAdminViews
+, init: init
+}
+
+if (server) {
+  module.exports = Fragile
+}
+else {
+  __global__.Fragile = Fragile
+  __global__.onload = function() {
+    init()
+    resolve('/admin/').func()
+  }
+}
+
+}(this, !!(typeof module != 'undefined' && module.exports))

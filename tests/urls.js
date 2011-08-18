@@ -2,6 +2,11 @@ QUnit.module('URLConfs')
 
 !function() {
 
+var URLPattern = Sacrum.URLPattern
+  , URLResolver = Sacrum.URLResolver
+  , ResolverMatch = Sacrum.ResolverMatch
+  , Resolver404 = Sacrum.Resolver404
+
 /**
  * Browsers? Inconistent in the way they implement RegExp.source? You never!
  */

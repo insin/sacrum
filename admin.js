@@ -1,3 +1,11 @@
+!function(__global__, server) {
+
+var DOMBuilder = (server ? require('DOMBuilder') : __global__.DOMBuilder)
+  , Sacrum = (server ? require('./sacrum') : __global__.Sacrum)
+  , extend = Sacrum.util.extend, format = Sacrum.util.format, replace = Sacrum.util.replace
+  , Views = Sacrum.Views
+  , patterns = Sacrum.patterns, url = Sacrum.url, reverse = Sacrum.reverse
+
 // ============================================================= Admin Views ===
 
 /**
@@ -10,8 +18,10 @@ var AdminViews = new Views({
 , modelViews: []
 
 , init: function() {
-    this.debug('init')
-    this.el = document.getElementById('admin')
+    this.log('init')
+    if (!server) {
+      this.el = document.getElementById('admin')
+    }
 
     // Hook ap all ModelAdminViews which have been created
     for (var i = 0, l = ModelAdminViews.instances.length; i < l; i++) {
@@ -26,7 +36,7 @@ var AdminViews = new Views({
    * Lists registered ModelAdminViews.
    */
 , index: function() {
-    this.debug('index')
+    this.log('index')
     var models = []
     for (var i = 0, l = this.modelViews.length, mv; i < l; i++) {
       var mv = this.modelViews[i]
@@ -35,7 +45,7 @@ var AdminViews = new Views({
       , listURL: reverse(mv.urlName('list'))
       })
     }
-    this.display('admin:index', {models: models})
+    return this.display('admin:index', {models: models})
   }
 
   /**
@@ -98,7 +108,7 @@ var ModelAdminViews = Views.extend({
       ns: this.namespace
     , model: this.storage.model._meta
     })
-    return Views.prototype.render.call(this, templateName, context, events)
+    return ModelAdminViews.__super__.render.call(this, templateName, context, events)
   }
 
   /**
@@ -106,8 +116,8 @@ var ModelAdminViews = Views.extend({
    * Model instances by default.
    */
 , init: function() {
-    this.debug('init')
-    if (this.elementId) {
+    this.log('init')
+    if (!server && this.elementId) {
       this.el = document.getElementById(this.elementId)
     }
   }
@@ -123,9 +133,9 @@ var ModelAdminViews = Views.extend({
    * Displays a list of Model instances.
    */
 , list: function() {
-    this.debug('list')
+    this.log('list')
     var items = this.storage.all()
-    this.display([this.namespace + ':admin:list', 'admin:list']
+    return this.display([this.namespace + ':admin:list', 'admin:list']
       , { items: items
         , rowTemplates: [this.namespace + ':admin:listRow', 'admin:listRow']
         , addURL: reverse(this.urlName('add'))
@@ -137,9 +147,9 @@ var ModelAdminViews = Views.extend({
    * Displays the selected Model's details.
    */
 , detail: function(id) {
-    this.debug('detail', id)
+    this.log('detail', id)
     item = this.storage.get(id)
-    this.display([this.namespace + ':admin:detail', 'admin:detail']
+    return this.display([this.namespace + ':admin:detail', 'admin:detail']
       , { item: item
         , editURL: reverse(this.urlName('edit'), [id])
         , deleteURL: reverse(this.urlName('delete'), [id])
@@ -152,26 +162,28 @@ var ModelAdminViews = Views.extend({
    * instance or redisplays the form with errorsif form data was given.
    */
 , add: function(data) {
-    this.debug('add', data)
+    this.log('add', data)
     var form
     if (data) {
       form = this.form({data: data})
       if (form.isValid()) {
         this.storage.add(new this.storage.model(form.cleanedData))
-        this.list()
+        // TODO Redirect
+        return this.list()
       }
-      else {
-        replace(format('%sFormBody', this.namespace), form.asTable())
+      else if (!server) {
+        return replace(format('%sFormBody', this.namespace), form.asTable())
       }
     }
     else {
-      this.display([this.namespace + ':admin:add', 'admin:add']
-        , { form: this.form()
-          , submitURL: reverse(this.urlName('add'))
-          , cancelURL: reverse(this.urlName('list'))
-          }
-        )
+      form = this.form()
     }
+    return this.display([this.namespace + ':admin:add', 'admin:add']
+      , { form: form
+        , submitURL: reverse(this.urlName('add'))
+        , cancelURL: reverse(this.urlName('list'))
+        }
+      )
   }
 
   /**
@@ -180,28 +192,30 @@ var ModelAdminViews = Views.extend({
    * redisplays the form with errors if form data was given.
    */
 , edit: function(id, data) {
-    this.debug('edit', id, data)
+    this.log('edit', id, data)
     var item = this.storage.get(id)
       , form
     if (data) {
       form = this.form({data: data, initial: item})
       if (form.isValid()) {
         extend(item, form.cleanedData)
-        this.list()
+        // TODO Redirect
+        return this.list()
       }
-      else {
-        replace(format('%sFormBody', this.namespace), form.asTable())
+      else if (!server) {
+        return replace(format('%sFormBody', this.namespace), form.asTable())
       }
     }
     else {
-      this.display([this.namespace + ':admin:edit', 'admin:edit']
-        , { item: item
-          , form: this.form({initial: item})
-          , submitURL: reverse(this.urlName('edit'), [id])
-          , cancelURL: reverse(this.urlName('detail'), [id])
-          }
-        )
+      form = this.form({initial: item})
     }
+    return this.display([this.namespace + ':admin:edit', 'admin:edit']
+      , { item: item
+        , form: form
+        , submitURL: reverse(this.urlName('edit'), [id])
+        , cancelURL: reverse(this.urlName('detail'), [id])
+        }
+      )
   }
 
   /**
@@ -209,14 +223,15 @@ var ModelAdminViews = Views.extend({
    * performs deletion if form data was given.
    */
 , delete_: function(id, data) {
-    this.debug('delete_', id, data)
+    this.log('delete_', id, data)
     var item = this.storage.get(id)
     if (data) {
       this.storage.remove(item)
-      this.list()
+      // TODO Redirect
+      return this.list()
     }
     else {
-      this.display([this.namespace + ':admin:delete', 'admin:delete']
+      return this.display([this.namespace + ':admin:delete', 'admin:delete']
         , { item: item
           , submitURL: reverse(this.urlName('delete'), [id])
           , cancelURL: reverse(this.urlName('detail'), [id])
@@ -254,7 +269,7 @@ $template('admin:base'
     , H2(
         A({href: $url('admin_index'), click: $resolve}, 'Admin')
       , $if('ns'
-        , ' : '
+        , ' \u2192 '
         , A({href: $url('admin_{{ ns }}_list'), click: $resolve}, '{{ model.namePlural }}')
         )
       )
@@ -405,3 +420,12 @@ $template({name: 'admin:delete', extend: 'admin:base'}, $block('contents'
 ))
 
 }}()
+
+// ================================================================== Export ===
+
+Sacrum.Admin = {
+  AdminViews: AdminViews
+, ModelAdminViews: ModelAdminViews
+}
+
+}(this, !!(typeof module != 'undefined' && module.exports))

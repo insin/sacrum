@@ -1,4 +1,9 @@
+!function(__global__, server) {
+
 // =============================================================== Utilities ===
+
+var DOMBuilder = (server ? require('DOMBuilder') : __global__.DOMBuilder)
+  , forms = (server ? require('newforms') : __global__.forms)
 
 var slice = Array.prototype.slice
   , toString = Object.prototype.toString
@@ -332,23 +337,15 @@ Views.prototype.render = function(templateName, context, events) {
  * Renders a template and displays the results in this Views' element.
  */
 Views.prototype.display = function(templateName, context, events) {
-  replace(this.el, this.render(templateName, context, events))
-}
-
-/**
- * Logs information with this Views' name.
- */
-Views.prototype.log = function() {
-  console.log.apply(console,
-                    [this.name].concat(slice.call(arguments)))
+  return replace(this.el, this.render(templateName, context, events))
 }
 
 /**
  * Logs debug information with this Views' name.
  */
-Views.prototype.debug = function() {
-  console.debug.apply(console,
-                      [this.name].concat(slice.call(arguments)))
+Views.prototype.log = function() {
+  console.log.apply(console,
+                    [this.name].concat(slice.call(arguments)))
 }
 
 /**
@@ -688,14 +685,14 @@ function reverse(name, args, prefix) {
  * last argument to the view function.
  */
 function handleURLChange(e) {
-  console.debug('handleURLChange', e)
+  console.log('handleURLChange', e)
   e.preventDefault()
   var el = e.target
     , tagName = el.tagName.toLowerCase()
   try {
     if (tagName == 'a') {
       var url = el.getAttribute('href')
-      console.debug('Resolving a/@href', url)
+      console.log('Resolving a/@href', url)
       var match = resolve(url)
       match.func.apply(null, match.args)
       // TODO History
@@ -703,7 +700,7 @@ function handleURLChange(e) {
     else if (tagName == 'form') {
       var url = el.getAttribute('action')
         , formData = forms.formData(el)
-      console.debug('Resolving form/@action', url, formData)
+      console.log('Resolving form/@action', url, formData)
       var match = resolve(url)
       match.func.apply(null, match.args.concat([formData]))
       // TODO History
@@ -761,3 +758,50 @@ extend(DOMBuilder.template, {
     return new URLNode(urlName, args, options)
   }
 })
+
+// ================================================================== Export ===
+
+var Sacrum = {
+  util: {
+    replace: replace
+  , bind: bind
+  , inherits: inherits
+  , subclass: subclass
+  , extendConstructor: extendConstructor
+  , extend: extend
+  , zip: zip
+  , isArray: isArray
+  , isFunction: isFunction
+  , isRegExp: isRegExp
+  , isString: isString
+  , findAll: findAll
+  , format: format
+  , formatArr: formatArr
+  , formatObj: formatObj
+  }
+, Model: Model
+, Storage: Storage
+, Query: Query
+, Views: Views
+, Resolver404: Resolver404
+, NoReverseMatch: NoReverseMatch
+, ResolverMatch: ResolverMatch
+, URLPattern: URLPattern
+, URLResolver: URLResolver
+, URLConf: URLConf
+, patterns: patterns
+, url: url
+, resolve: resolve
+, reverse: reverse
+, handleURLChange: handleURLChange
+, URLNode: URLNode
+}
+
+if (server) {
+  module.exports = Sacrum
+}
+else {
+  __global__.Sacrum = Sacrum
+}
+
+}(this, !!(typeof module != 'undefined' && module.exports))
