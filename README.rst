@@ -2,35 +2,48 @@
 Sacrum
 ======
 
-*Sacrum is under initial, heavy development, but it's at the stage where I believe the core
-concept is proved out - this is what it's going to be:*
+*Sacrum is under initial, heavy development, but it's at the stage where I
+believe the core concept is proved out - this is what it's going to be:*
 
-Sacrum provides components and conventions for writing single-page JavaScript apps which also
-run on Node.js for almost-free as good ol' forms 'n links webapps, allowing you to ditch the
-hashbangs and **use real URLs like TBL intended**, without having to expend significant effort
-on a separate backend and without leaving user agents which Don't Do JavaScript out in the cold.
+Sacrum provides components and conventions for writing single-page JavaScript
+apps which also run on `Node.js`_ for almost-free as good ol' forms 'n links
+webapps, allowing you to ditch the hashbangs and **use real URLs like TBL
+intended**, without having to expend significant effort on a separate backend
+and without leaving user agents which *Don't Do JavaScript* out in the cold.
 
-It gives you a baseline from which to progressively enhance for those who Definitely Do Do
-JavaScript by running the JavaScript everybody else can't or won't run for them.
+It gives you a baseline from which to progressively enhance for those who
+*Definitely Do Do JavaScript* by running the JavaScript everybody else can't or
+won't run for them.
 
 ----
 
 The sample application for Sacrum is `Fragile`_ - it serves as the test-bed
 and proving ground for new features, components and ideas.
 
+.. _`Node.js`: http://nodejs.org
 .. _`Fragile`: http://jonathan.buchanan153.users.btopenworld.com/sacrum/fragile/fragile.html
 
 Dependencies
 ============
 
-- `DOMBuilder`_ >= 2.1.0 alpha1
-- `newforms`_ >= 0.0.4 alpha1
+*The required versions aren't yet available in npm for Node.js due to Cygwin
+being FUBAR*
+
+- `DOMBuilder`_ (>= 2.1.0 alpha1) is required for templating in code with
+  template inheritance, generating DOM Elements and registering event handlers on
+  the browser and generating HTML on Node.js with hooks for event handlers to be
+  attached later.
+
+- `newforms`_ (>= 0.0.4 alpha1) is required for form display, user input
+  validation and type coercion. It also requires DOMBuilder for rendering across
+  environments.
 
 Sacrum Components
 =================
 
-The following components are defined in `sacrum.js`_ and (in browsers) exposed to the
-global scope as properties of a ``Sacrum`` object, which is omitted here for brevity.
+The following components are defined in `sacrum.js`_ and (in browsers) exposed to
+the global scope as properties of a ``Sacrum`` object, which is omitted here for
+brevity.
 
 .. _`sacrum.js`: https://github.com/insin/fragile/blob/master/sacrum.js
 
@@ -63,8 +76,8 @@ Models
       Plural form of the model's name - if not provided in the ``Meta`` object,
       this will be defaulted to ``name`` followed by an ``'s'``.
 
-Don't forget to add a ``toString`` method to the prototype when extending ``Model``,
-to define its default display::
+Don't forget to add a ``toString`` method to the prototype when extending
+``Model``, to define its default display::
 
    var Vehicle = Model.extend({
      toString: function() {
@@ -117,9 +130,9 @@ Methods:
 Model Validation
 ~~~~~~~~~~~~~~~~
 
-Sacrum doesn't offer any hooks for doing so yet, but it does let `newforms`_ know how
-its ``Storage`` objects work, which enables use of ``forms.ModelVhoiceField`` for
-display, selection and validation of related models.
+Sacrum doesn't offer any hooks for doing so yet, but it does let `newforms`_ know
+how its ``Storage`` objects work, which enables use of ``forms.ModelVhoiceField``
+for display, selection and validation of related models.
 
 ::
 
@@ -189,8 +202,8 @@ Methods:
       Returns the rendered template contents.
 
    To support usage in both environments, you should always return the result of
-   calling this method when it signifies that your view function is finished doing
-   it thing.
+   calling this method when it signifies that your view function is finished
+   doing it thing.
 
 ``log(...)``, ``warn(...)``, ``error(...)``
    Console logging methods, which include the views' name in logs, passing
