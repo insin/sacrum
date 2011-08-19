@@ -9,12 +9,12 @@ var Sacrum = require('../sacrum')
 
 // Define a full-page base template
 $template('fragile:base'
-, $doctype(5)
+, $doctype()
 , HTML(
     HEAD(
       TITLE('Fragile')
     , LINK({rel: 'stylesheet', type: 'text/css', href: '/fragile/fragile.css'})
-    , SCRIPT({src: '/lib/DOMBuilder-2.1.0alpha1.js'})
+    , SCRIPT({src: '/lib/DOMBuilder-2.1.0alpha2.js'})
     , SCRIPT({src: '/lib/newforms-0.0.4alpha1.js'})
     , SCRIPT({src: '/sacrum.js'})
     , SCRIPT({src: '/admin.js'})

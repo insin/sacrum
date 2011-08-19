@@ -2,7 +2,7 @@
 
 var DOMBuilder = (server ? require('DOMBuilder') : __global__.DOMBuilder)
   , Sacrum = (server ? require('./sacrum') : __global__.Sacrum)
-  , extend = Sacrum.util.extend, format = Sacrum.util.format, replace = Sacrum.util.replace
+  , extend = Sacrum.util.extend, format = Sacrum.util.format
   , Views = Sacrum.Views
   , patterns = Sacrum.patterns, url = Sacrum.url, reverse = Sacrum.reverse
 
@@ -173,8 +173,12 @@ var ModelAdminViews = Views.extend({
         return this.list()
       }
       else if (!server) {
-        return replace(format('%sFormBody', this.namespace), form.asTable())
+        // Look up the <tbody> containing the form rows and replace its contents
+        // with the rendered invalid form.
+        return this.replaceContents(format('%sFormBody', this.namespace),
+                                    form.asTable())
       }
+      // If we're on the server, fall through to rendering the complete template
     }
     else {
       form = this.form()
@@ -204,8 +208,12 @@ var ModelAdminViews = Views.extend({
         return this.list()
       }
       else if (!server) {
-        return replace(format('%sFormBody', this.namespace), form.asTable())
+        // Look up the <tbody> containing the form rows and replace its contents
+        // with the rendered invalid form.
+        return this.replaceContents(format('%sFormBody', this.namespace),
+                                    form.asTable())
       }
+      // If we're on the server, fall through to rendering the complete template
     }
     else {
       form = this.form({initial: item})

@@ -105,39 +105,39 @@ Don't forget to add a ``toString`` method to the prototype when extending
    Storage and retrieval of instances of a particular ``Model``. Not persistent
    yet.
 
+   **Prototype methods:**
+
+   ``add(instance)``
+      Generates and id for and adds the given instance.
+
+   ``remove(instance)``
+      Removes the given instance.
+
+   ``all()``
+      Gets all instances.
+
+   ``get(id)``
+      Gets an instance by id.
+
+   ``query()``
+      Creates a Query returning all instances.
+
 ::
 
    var Vehicles = new Storage(Vehicle)
-
-Methods:
-
-``add(instance)``
-   Generates and id for and adds the given instance.
-
-``remove(instance)``
-   Removes the given instance.
-
-``all()``
-   Gets all instances.
-
-``get(id)``
-   Gets an instance by id.
-
-``query()``
-   Creates a Query returning all instances.
 
 ``Query(storage)``
 
    Provides access to results of querying a ``Storage``, and a means to perform
    further queries/filtering.
 
-Methods:
+   **Prototype methods:**
 
-``__iter__()``
-   Returns query results - currently just ``storage.all()``
+   ``__iter__()``
+      Returns query results - currently just ``storage.all()``
 
-``get(id)``
-   Gets an instance by id.
+   ``get(id)``
+      Gets an instance by id.
 
 Model Validation
 ~~~~~~~~~~~~~~~~
@@ -184,42 +184,58 @@ and display logic.
       For example, if you have a bunch of view functions which handle listing
       and editing ``Vehicle`` objects, a logical name would be ``'VehicleViews'``.
 
-   ``el`` *(Element)* - required if using ``display()``
+   ``el`` *(Element)*
       The element which contains the views' contents.
 
    These don't have to be set at construction time - you could defer setting
-   them until the views' ``init()`` method is called, if appropriate.
+   them until the views' ``init()`` method is called, if appropriate, or in
+   the case of ``el``, it will be populated with an element if not already set
+   when the ``display()`` method is used.
 
-Methods:
+   **Prototype attributes:**
 
-``render(templateName, context, events)``
-   Renders a DOMBuilder template with the given context data.
+   ``tagName``
+      The tagName used by ``_ensureElement`` to automatically create an
+      element if needed - defaults to ``'div'``.
 
-   ``templateName`` *(String)*
-      Name of a DOMBuilder template.
-   ``context`` *(Object)*
-      Template rendering context data.
-   ``events`` *(Object.<String, Function>)*
-      Named event handling functions - if provided, these functions will be
-      bound to this Views instance and added to the template context as an
-      ``'events'`` property.
+   **Prototype methods:**
 
-``display(templateName, context, events)``
-   Renders a DOMBuilder template and displays it.
+   ``render(templateName, context, events)``
+      Renders a DOMBuilder template with the given context data.
 
-   On browsers:
-      Replaces the contents of this views' element with the rendered template
-      contents the contents.
-   On servers:
-      Returns the rendered template contents.
+      ``templateName`` *(String)*
+         Name of a DOMBuilder template.
+      ``context`` *(Object)*
+         Template rendering context data.
+      ``events`` *(Object.<String, Function>)*
+         Named event handling functions - if provided, these functions will be
+         bound to this Views instance and added to the template context as an
+         ``'events'`` property.
 
-   To support usage in both environments, you should always return the result of
-   calling this method when it signifies that your view function is finished
-   doing it thing.
+   ``display(templateName, context, events)``
+      On browsers:
+         Ensures this view has an element which content can be inserted into by
+         first calling ``_ensureElement()``, renders a DOMBuilder template,
+         replaces the contents of the element with the rendered contents and
+         returns the element.
 
-``log(...)``, ``warn(...)``, ``error(...)``
-   Console logging methods, which include the views' name in logs, passing
-   all given arguments to console logging functions.
+      On servers:
+         Calls ``render`` and returns rendered contents.
+
+      To support usage in both environments, you should always return the result of
+      calling this method when it signifies that your view function is finished
+      doing its thing.
+
+   ``replaceContents(el, contents)``
+      Replaces the contents of an element and returns it.
+
+   ``_ensureElement()``
+      If an ``el`` instance property does not exist, creates and populates it with
+      a suitable element which content can be appended to.
+
+   ``log(...)``, ``warn(...)``, ``error(...)``
+      Console logging methods, which include the views' name in logs, passing
+      all given arguments to console logging functions.
 
 ::
 
@@ -309,12 +325,12 @@ a URL.
      // ...
 
    , index: function() {
-        this.display('index')
+        return this.display('index')
      }
 
    , details: function(id) {
        var vehicle = Vehicles.get(id)
-       this.display('vehicleDetails', {vehicle: vehicle})
+       return this.display('vehicleDetails', {vehicle: vehicle})
      }
 
    , getURLs: function() {
@@ -399,20 +415,20 @@ been created to display a basic admin section.
 
 ``AdminViews`` contains the following properties and functions:
 
-``init()``
-   Initialises the view element and registers all ``ModelAdminViews`` which
-   have been created so far. Each ``ModelAdminViews`` registered will have its
-   ``el`` set to this views' element.
+   ``init()``
+      Initialises the view element and registers all ``ModelAdminViews`` which
+      have been created so far. Each ``ModelAdminViews`` registered will have its
+      ``el`` set to this views' element.
 
-``modelViews`` (Array)
-   ModelAdminViews registered by ``init()``
+   ``modelViews`` (Array)
+      ModelAdminViews registered by ``init()``
 
-``index()``
-   Displays an index listing ModelAdminViews for use.
+   ``index()``
+      Displays an index listing ModelAdminViews for use.
 
-``getURLs()``
-   Creates and returns URL patterns for the index view and includes
-   patterns for each ModelAdminViews.
+   ``getURLs()``
+      Creates and returns URL patterns for the index view and includes
+      patterns for each ModelAdminViews.
 
 ModelAdminViews
 ---------------

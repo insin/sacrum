@@ -9,24 +9,6 @@ var slice = Array.prototype.slice
   , toString = Object.prototype.toString
 
 /**
- * Replaces the contents of an element.
- */
-function replace(el, content) {
-  if (typeof el == 'string') {
-    el = document.getElementById(el)
-  }
-  el.innerHTML = ''
-  if (isArray(content)) {
-    content = DOMBuilder.fragment(content)
-  }
-  else if (isString(content)) {
-    content = document.createTextNode(content)
-  }
-  el.appendChild(content)
-  return el
-}
-
-/**
  * Binds a function with a calling context and (optionally) some curried arguments.
  */
 function bind(fn, ctx) {
@@ -335,6 +317,12 @@ function Views(props) {
 Views.prototype.name = 'Views'
 
 /**
+ * Default tagName for this Views' element if it needs to be automatically
+ * created.
+ */
+Views.prototype.tagName = 'div'
+
+/**
  * Renders a DOMBuilder template with the given context data.
  * @param {string} templateName the name of a DOMBuilder template to render.
  * @param {Object} context template rendering context data.
@@ -364,10 +352,45 @@ Views.prototype.render = function(templateName, context, events) {
  */
 Views.prototype.display = function(templateName, context, events) {
   var contents = this.render(templateName, context, events)
+  // We don't place contents into an element on the server as we never want to
+  // store state on view instances, since they're shared across all users.
   if (server) {
     return contents
   }
-  return replace(this.el, contents)
+  this._ensureElement()
+  return this.replaceContents(this.el, contents)
+}
+
+/**
+ * Replaces the contents of an element and returns it.
+ */
+Views.prototype.replaceContents = function(el, contents) {
+  if (isString(el)) {
+    el = document.getElementById(el)
+  }
+  while (el.firstChild) {
+    el.removeChild(el.firstChild)
+  }
+  // If given a list of contents, wrap it in a DocumentFragment so it can be
+  // appended in one go.
+  if (isArray(contents)) {
+    contents = DOMBuilder.fragment(contents)
+  }
+  else if (isString(contents)) {
+    contents = DOMBuilder.textNode(contents)
+  }
+  el.appendChild(contents)
+  return el
+}
+
+/**
+ * Ensures this Views instance has an el property which contents can be added
+ * to.
+ */
+Views.prototype._ensureElement = function() {
+  if (!this.el) {
+    this.el = DOMBuilder.createElement(this.tagName)
+  }
 }
 
 /**
@@ -793,8 +816,7 @@ extend(DOMBuilder.template, {
 
 var Sacrum = {
   util: {
-    replace: replace
-  , bind: bind
+    bind: bind
   , inherits: inherits
   , subclass: subclass
   , extendConstructor: extendConstructor
