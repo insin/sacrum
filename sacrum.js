@@ -764,6 +764,7 @@ function handleURLChange(e) {
   }
   catch(err) {
     console.error('Exception handling URL change', err)
+    alert(err)
   }
 }
 
