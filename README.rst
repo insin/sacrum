@@ -23,6 +23,37 @@ and proving ground for new features, components and ideas.
 .. _`Node.js`: http://nodejs.org
 .. _`Fragile`: http://jonathan.buchanan153.users.btopenworld.com/sacrum/fragile/fragile.html
 
+Current Development Focus
+=========================
+
+In order to run relatively painlessly in both environments, Sacrum needs to get
+its async on.
+
+The current example app code is all written in a synchronous style, but the
+following operations and components will need to support asynchronous usage:
+
+Models
+  * lookups when instances are not cached locally, for display and validation.
+  * saving/updating of instances needs to be implemented.
+
+Forms
+  * `newforms`_ will need to add an async API for validations which involve I/O,
+    such as performing a HEAD request to verify that a URL exists and is
+    reachable.
+  * ModelChoiceFields may need to perform an async lookup before a form can be
+    displayed or validated.
+
+Templating 
+  * it's possible that async operations would need to be performed by items being
+    rendered in `DOMBuilder`_ templates. To support this, we would need to be able
+    to specify when this is the case and...
+    
+    * defer displaying until callbacks are called?
+    * (client) display as much as we can, with placeholders to be filled upon
+      completion?
+    * (server) sending as much of the response as we can until each async
+      operation completes?
+
 Dependencies & Demo
 ===================
 
