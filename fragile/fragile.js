@@ -731,6 +731,9 @@ if (server) {
 }
 else {
   __global__.Fragile = Fragile
+  if (__global__.location.protocol != 'file:') {
+    __global__.onpopstate = Sacrum.handlePopURLState
+  }
   __global__.onload = function() {
     init()
     resolve('/admin/').func()

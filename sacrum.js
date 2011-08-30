@@ -182,6 +182,54 @@ function formatObj(s, obj) {
   return s.replace(formatObjRE, function(m, p) { return obj[p] })
 }
 
+/**
+ * Creates an object from a URL query string, adding values for names which
+ * are present more than once to an array.
+ */
+function parseQueryString(query) {
+  var params = {}
+  if (query.length < 2) {
+    return params
+  }
+  var paramStrings = query.substring(1).split('&')
+  for (var i = 0, l = paramStrings.length; i < l; i++) {
+    var parts = paramStrings[i].split('=')
+      , name = parts[0]
+      , value = decodeURIComponent(parts[1])
+    if (params.hasOwnProperty(name)) {
+      if (isArray(params[name])) {
+        params[name].push(value)
+      }
+      else {
+        params[name] = [params[name], value]
+      }
+    }
+    else {
+      params[name] = value
+    }
+  }
+  return params
+}
+
+/**
+ * Creates URL query string from an object, expecting names with multiple values
+ * to be specified as an array.
+ */
+function serialiseQueryParams(params) {
+  var paramStrings = []
+  for (var name in params) {
+    if (isArray(params[name])) {
+      for (var a = params[name], i = 0, l = a.length; i < l; i++) {
+        paramStrings.push(name + '=' + encodeURIComponent(a[i]))
+      }
+    }
+    else {
+      paramStrings.push(name + '=' + encodeURIComponent(params[name]))
+    }
+  }
+  return ('?' + paramStrings.join('&'))
+}
+
 // ================================================================== Models ===
 
 /**
@@ -744,19 +792,21 @@ function handleURLChange(e) {
     , tagName = el.tagName.toLowerCase()
   try {
     if (tagName == 'a') {
-      var url = el.getAttribute('href')
-      console.log('Resolving a/@href', url)
-      var match = resolve(url)
+      var path = el.getAttribute('href')
+      console.log('Resolving a/@href', path)
+      var match = resolve(path)
       match.func.apply(null, match.args)
-      // TODO History
+      pushURLState(path)
     }
     else if (tagName == 'form') {
-      var url = el.getAttribute('action')
+      var path = el.getAttribute('action')
         , formData = forms.formData(el)
-      console.log('Resolving form/@action', url, formData)
-      var match = resolve(url)
+      console.log('Resolving form/@action', path, formData)
+      var match = resolve(path)
       match.func.apply(null, match.args.concat([formData]))
-      // TODO History
+      if (el.method.toUpperCase() != 'POST') {
+        pushURLState(path, formData)
+      }
     }
     else {
       console.error('Unknown target element for URL change', tagName, el)
@@ -766,6 +816,27 @@ function handleURLChange(e) {
     console.error('Exception handling URL change', err)
     alert(err)
   }
+}
+
+// TODO Hash/iframe fallbacks for non-pushState browsers & file: protocol
+
+function pushURLState(path, queryParams) {
+  if (__global__.location.protocol == 'file:') {
+    return
+  }
+  var loc = __global__.location
+    , root = loc.protocol + '//' + loc.host
+  if (queryParams) {
+    path += serialiseQueryParams(queryParams)
+  }
+  window.history.pushState({}, '', root + path)
+}
+
+function handlePopURLState(e) {
+  var path = __global__.location.pathname
+  console.log('Resolving onpopstate', path)
+  var match = resolve(path)
+  match.func.apply(null, match.args)
 }
 
 var templateAPI = DOMBuilder.modes.template.api
@@ -831,6 +902,8 @@ var Sacrum = {
   , format: format
   , formatArr: formatArr
   , formatObj: formatObj
+  , parseQueryString: parseQueryString
+  , serialiseQueryParams: serialiseQueryParams
   }
 , Model: Model
 , ModelOptions: ModelOptions
@@ -848,6 +921,8 @@ var Sacrum = {
 , resolve: resolve
 , reverse: reverse
 , handleURLChange: handleURLChange
+, pushURLState: pushURLState
+, handlePopURLState: handlePopURLState
 , URLNode: URLNode
 }
 
