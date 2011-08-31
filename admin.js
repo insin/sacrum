@@ -160,7 +160,7 @@ var ModelAdminViews = Views.extend({
 
   /**
    * Displays the add Form, or validates user input and creates a new Model
-   * instance or redisplays the form with errorsif form data was given.
+   * instance or redisplays the form with errors if form data was given.
    */
 , add: function(data) {
     this.log('add', data)
@@ -168,9 +168,8 @@ var ModelAdminViews = Views.extend({
     if (data) {
       form = this.form({data: data})
       if (form.isValid()) {
-        this.storage.add(new this.storage.model(form.cleanedData))
-        // TODO Redirect
-        return this.list()
+        var instance = this.storage.add(form.cleanedData)
+        return this.redirect(reverse(this.urlName('detail'), [instance.id]))
       }
       else if (!server) {
         // Look up the <tbody> containing the form rows and replace its contents
@@ -204,8 +203,8 @@ var ModelAdminViews = Views.extend({
       form = this.form({data: data, initial: item})
       if (form.isValid()) {
         extend(item, form.cleanedData)
-        // TODO Redirect
-        return this.list()
+        this.storage.update(item)
+        return this.redirect(reverse(this.urlName('detail'), [id]))
       }
       else if (!server) {
         // Look up the <tbody> containing the form rows and replace its contents
@@ -236,8 +235,7 @@ var ModelAdminViews = Views.extend({
     var item = this.storage.get(id)
     if (data) {
       this.storage.remove(item)
-      // TODO Redirect
-      return this.list()
+      return this.redirect(reverse(this.urlName('list')))
     }
     else {
       return this.display([this.namespace + ':admin:delete', 'admin:delete']

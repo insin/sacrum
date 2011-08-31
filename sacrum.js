@@ -41,7 +41,7 @@ function inherits(child, parent) {
 }
 
 /**
- * Inherits inherit another constructor's prototype sets its prototype and
+ * Inherits inherit another constructor's prototype and sets its prototype and
  * constructor properties in one fell swoop. If a child constructor is not
  * provided via prototypeProps.constructor, a new constructor will be created
  * for you.
@@ -272,6 +272,8 @@ Storage.prototype.add = function(instance) {
   return instance
 }
 
+Storage.prototype.update = function(instance) {}
+
 /**
  * Retrieves all model instances.
  */
@@ -407,6 +409,22 @@ Views.prototype.display = function(templateName, context, events) {
   }
   this._ensureElement()
   return this.replaceContents(this.el, contents)
+}
+
+Views.prototype.redirect = function(path) {
+  if (server) {
+    return new Redirect(path)
+  }
+  else {
+    loadURL(path)
+  }
+}
+
+function Redirect(path) {
+  this.path = path
+}
+Redirect.prototype.toString = function() {
+  return format('Redirect to %s', this.path)
 }
 
 /**
@@ -820,6 +838,9 @@ function handleURLChange(e) {
 
 // TODO Hash/iframe fallbacks for non-pushState browsers & file: protocol
 
+/**
+ * Adds a URL to the history.
+ */
 function pushURLState(path, queryParams) {
   if (__global__.location.protocol == 'file:') {
     return
@@ -832,11 +853,24 @@ function pushURLState(path, queryParams) {
   window.history.pushState({}, '', root + path)
 }
 
+/**
+ * Executes the appropriate handler when the back button is used.
+ */
 function handlePopURLState(e) {
   var path = __global__.location.pathname
   console.log('Resolving onpopstate', path)
   var match = resolve(path)
   match.func.apply(null, match.args)
+}
+
+/**
+ * Executes the handler for the given URL and adds it to the history.
+ */
+function loadURL(path) {
+  console.log('Resolving loadURL', path)
+  var match = resolve(path)
+  match.func.apply(null, match.args)
+  pushURLState(path)
 }
 
 var templateAPI = DOMBuilder.modes.template.api
@@ -910,6 +944,7 @@ var Sacrum = {
 , Storage: Storage
 , Query: Query
 , Views: Views
+, Redirect: Redirect
 , Resolver404: Resolver404
 , NoReverseMatch: NoReverseMatch
 , ResolverMatch: ResolverMatch

@@ -17,10 +17,17 @@ app.all('*', function(req, res) {
     if (req.method == 'POST') {
       args.push(req.body)
     }
-    var el = match.func.apply(null, args)
-    var html = el.toString(true)
-    // TODO Add information required to hook up event handlers on load
-    res.send(html)
+    var response = match.func.apply(null, args)
+    if (response instanceof Sacrum.Redirect) {
+      console.log('Redirect', response)
+      res.redirect(response.path)
+    }
+    else {
+      // Assuming a DOMBuilder HTMLFragment as default return value for now
+      var html = response.toString(true)
+      // TODO Add information required to hook up event handlers on load
+      res.send(html)
+    }
   }
   catch (e) {
     if (e instanceof Sacrum.Resolver404) {
