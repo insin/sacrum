@@ -3,8 +3,7 @@ QUnit.module('Utilities')
 !function() {
 
 var parseQueryString = Sacrum.util.parseQueryString
-  , serialiseQueryParams = Sacrum.util.serialiseQueryParams
-
+  , toQueryString = Sacrum.util.toQueryString
 
 test('parseQueryString', function() {
   deepEqual(parseQueryString('?'), {})
@@ -14,12 +13,12 @@ test('parseQueryString', function() {
   deepEqual(parseQueryString('?foo=bar%20bar%20bar'), {foo: 'bar bar bar'})
 })
 
-test('serialiseQueryParams', function() {
-  equal(serialiseQueryParams({}), '?')
-  equal(serialiseQueryParams({foo: 'bar'}), '?foo=bar')
-  equal(serialiseQueryParams({foo: 'bar', baz: 'ter'}), '?foo=bar&baz=ter')
-  equal(serialiseQueryParams({foo: ['bar', 'par'], baz: 'ter'}), '?foo=bar&foo=par&baz=ter')
-  equal(serialiseQueryParams({foo: 'bar bar bar'}), '?foo=bar%20bar%20bar')
+test('toQueryString', function() {
+  equal(toQueryString({}), '')
+  equal(toQueryString({foo: 'bar'}), 'foo=bar')
+  equal(toQueryString({foo: 'bar', baz: 'ter'}), 'foo=bar&baz=ter')
+  equal(toQueryString({foo: ['bar', 'par'], baz: 'ter'}), 'foo=bar&foo=par&baz=ter')
+  equal(toQueryString({foo: 'bar bar bar'}), 'foo=bar%20bar%20bar')
 })
 
 }()

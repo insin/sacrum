@@ -182,52 +182,59 @@ function formatObj(s, obj) {
   return s.replace(formatObjRE, function(m, p) { return obj[p] })
 }
 
+function isEmpty(obj) {
+  for (var prop in obj) {
+    return false
+  }
+  return true
+}
+
 /**
- * Creates an object from a URL query string, adding values for names which
- * are present more than once to an array.
+ * Creates an object from a URL query string, providing values for names which
+ * are present more than once as an array.
  */
 function parseQueryString(query) {
-  var params = {}
+  var obj = {}
   if (query.length < 2) {
-    return params
+    return obj
   }
-  var paramStrings = query.substring(1).split('&')
-  for (var i = 0, l = paramStrings.length; i < l; i++) {
-    var parts = paramStrings[i].split('=')
+  var params = query.substring(1).split('&')
+  for (var i = 0, l = params.length; i < l; i++) {
+    var parts = params[i].split('=')
       , name = parts[0]
       , value = decodeURIComponent(parts[1])
-    if (params.hasOwnProperty(name)) {
-      if (isArray(params[name])) {
-        params[name].push(value)
+    if (obj.hasOwnProperty(name)) {
+      if (isArray(obj[name])) {
+        obj[name].push(value)
       }
       else {
-        params[name] = [params[name], value]
+        obj[name] = [obj[name], value]
       }
     }
     else {
-      params[name] = value
+      obj[name] = value
     }
   }
-  return params
+  return obj
 }
 
 /**
  * Creates URL query string from an object, expecting names with multiple values
  * to be specified as an array.
  */
-function serialiseQueryParams(params) {
-  var paramStrings = []
-  for (var name in params) {
-    if (isArray(params[name])) {
-      for (var a = params[name], i = 0, l = a.length; i < l; i++) {
-        paramStrings.push(name + '=' + encodeURIComponent(a[i]))
+function toQueryString(obj) {
+  var params = []
+  for (var name in obj) {
+    if (isArray(obj[name])) {
+      for (var a = obj[name], i = 0, l = a.length; i < l; i++) {
+        params.push(name + '=' + encodeURIComponent(a[i]))
       }
     }
     else {
-      paramStrings.push(name + '=' + encodeURIComponent(params[name]))
+      params.push(name + '=' + encodeURIComponent(obj[name]))
     }
   }
-  return ('?' + paramStrings.join('&'))
+  return params.join('&')
 }
 
 // ================================================================== Models ===
@@ -841,14 +848,14 @@ function handleURLChange(e) {
 /**
  * Adds a URL to the history.
  */
-function pushURLState(path, queryParams) {
+function pushURLState(path, queryObj) {
   if (__global__.location.protocol == 'file:') {
     return
   }
   var loc = __global__.location
     , root = loc.protocol + '//' + loc.host
-  if (queryParams) {
-    path += serialiseQueryParams(queryParams)
+  if (queryObj && !isEmpty(queryObj)) {
+    path += '?' + toQueryString(queryObj)
   }
   window.history.pushState({}, '', root + path)
 }
@@ -937,7 +944,7 @@ var Sacrum = {
   , formatArr: formatArr
   , formatObj: formatObj
   , parseQueryString: parseQueryString
-  , serialiseQueryParams: serialiseQueryParams
+  , toQueryString: toQueryString
   }
 , Model: Model
 , ModelOptions: ModelOptions
