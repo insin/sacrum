@@ -31,10 +31,10 @@ app.all('*', function(req, res) {
   }
   catch (e) {
     if (e instanceof Sacrum.Resolver404) {
-      res.send('<h1>404 Not Found</h1>' + e, 404)
+      res.send('<h1>404 Not Found</h1>' + e.toDOM(), 404)
     }
     else {
-      res.send('<h1>500 Server Error</h1>' + e, 500)
+      res.send('<h1>500 Server Error</h1>' + e.toDOM(), 500)
     }
   }
 })

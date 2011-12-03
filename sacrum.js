@@ -504,7 +504,21 @@ function Resolver404(path, tried) {
   this.tried = tried || null
 }
 Resolver404.prototype.toString = function() {
-  return 'Resolver404 on ' + this.path
+  return 'Resolver404 on path "' + this.path + '"'
+}
+Resolver404.prototype.toDOM = function() {
+  var el = DOMBuilder.elements
+  return DOMBuilder.fragment(
+    el.P(this.toString() + ' - tried the following patterns:')
+  , el.UL(el.LI.map(this.tried, function(tried) {
+      DOMBuilder.util.flatten(tried)
+      var patterns = []
+      for (var i = 0, l = tried.length; i < l; i++) {
+        patterns.push(tried[i].pattern)
+      }
+      return patterns.join(' ')
+    }))
+  )
 }
 
 /**
@@ -768,7 +782,7 @@ function patterns(context) {
 
 /**
  * Creates a URL pattern or roots a list of patterns to the given pattern if
- * a list of views.
+ * given a list of views.
  */
 function url(pattern, view, name) {
   if (isArray(view)) {
@@ -777,7 +791,8 @@ function url(pattern, view, name) {
   else {
     if (isString(view)) {
       if (!view) {
-        throw new Error('Empty URL pattern view name not permitted (for pattern ' + pattern + ')')
+        throw new Error('Empty URL pattern view name not permitted (for pattern ' +
+                        pattern + ')')
       }
     }
     return new URLPattern(pattern, view, name)
