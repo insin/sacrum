@@ -2,8 +2,7 @@
 Sacrum
 ======
 
-*Sacrum is still under initial development, but it's at the stage where I
-believe the core concept is proved out - this is what it's going to be:*
+*Sacrum is on the back burner for a while - if I can make it work, this is what it's going to be:*
 
 Sacrum provides components and conventions for writing single-page JavaScript
 apps which also run on `Node.js`_ for almost-free as good ol' forms 'n links
