@@ -168,7 +168,7 @@ var ModelAdminViews = Views.extend({
     if (data) {
       form = this.form({data: data})
       if (form.isValid()) {
-        var instance = this.storage.add(form.cleanedData)
+        var instance = this.storage.add(new this.storage.model(form.cleanedData))
         return this.redirect(reverse(this.urlName('detail'), [instance.id]))
       }
       else if (!server) {
