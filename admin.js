@@ -149,7 +149,7 @@ var ModelAdminViews = Views.extend({
    */
 , detail: function(id) {
     this.log('detail', id)
-    item = this.storage.get(id)
+    var item = this.storage.get(id)
     return this.display([this.namespace + ':admin:detail', 'admin:detail']
       , { item: item
         , editURL: reverse(this.urlName('edit'), [id])
