@@ -56,7 +56,7 @@ Templating
 Dependencies & Demo
 ===================
 
-Browser dependencies are bundled in the ``lib/`` directory.
+Browser dependencies are bundled in the ``deps/`` directory.
 
 Node.js dependencies are available via `npm`_. If you're cloning this repo,
 run ``npm install -d`` to install them locally in a ``node_modules``
@@ -173,7 +173,7 @@ Model Validation
 ~~~~~~~~~~~~~~~~
 
 Sacrum doesn't offer any hooks for doing so yet, but it does let `newforms`_ know
-how its ``Storage`` objects work, which enables use of ``forms.ModelVhoiceField``
+how its ``Storage`` objects work, which enables use of ``forms.ModelChoiceField``
 for display, selection and validation of related models.
 
 ::
