@@ -1,14 +1,16 @@
-!function(__global__, server) {
+var server = (typeof window == 'undefined')
+
+var Sacrum = require('../lib/sacrum')
+  , Admin = Sacrum.Admin
+  , object = require('isomorph').object
+  , urlresolve = require('urlresolve')
+  , URLConf = Sacrum.URLConf
+
+// TODO Port these to build with buildumb
+var DOMBuilder = (server ? require('DOMBuilder') : window.DOMBuilder)
+  , forms = (server ? require('newforms') : window.forms)
 
 // =============================================================== Utilities ===
-
-var DOMBuilder = (server ? require('DOMBuilder') : __global__.DOMBuilder)
-  , forms = (server ? require('newforms') : __global__.forms)
-  , Sacrum = (server ? require('../index') : __global__.Sacrum)
-  , extend = Sacrum.util.extend , inherits = Sacrum.util.inherits
-  , Model = Sacrum.Model , Storage = Sacrum.Storage
-  , URLConf = Sacrum.URLConf, url = Sacrum.url , resolve = Sacrum.resolve
-  , AdminViews = Sacrum.Admin.AdminViews, ModelAdminViews = Sacrum.Admin.ModelAdminViews
 
 /**
  * Replaces linebreaks with <br> elements for display.
@@ -41,7 +43,7 @@ function formatDate(d) {
 
 // -------------------------------------------------------------------- User ---
 
-var User = Model.extend({
+var User = Sacrum.Model.extend({
   toString: function() {
     return this.displayName
   }
@@ -58,7 +60,7 @@ var User = Model.extend({
 
 // ----------------------------------------------------------------- Project ---
 
-var Project = Model.extend({
+var Project = Sacrum.Model.extend({
   toString: function() {
     return this.name
   }
@@ -69,7 +71,7 @@ var Project = Model.extend({
 
 // ----------------------------------------------------------------- Package ---
 
-var Package = Model.extend({
+var Package = Sacrum.Model.extend({
   toString: function() {
     return this.name
   }
@@ -80,7 +82,7 @@ var Package = Model.extend({
 
 // ----------------------------------------------------------------- Release ---
 
-var Release = Model.extend({
+var Release = Sacrum.Model.extend({
   toString: function() {
     return this.name
   }
@@ -116,7 +118,7 @@ Release.StateChoices = [ [Release.States.PLANNING, 'Planning']
 
 // --------------------------------------------------------------- Iteration ---
 
-var Iteration = Model.extend({
+var Iteration = Sacrum.Model.extend({
   toString: function() {
     return this.name
   }
@@ -151,7 +153,7 @@ Iteration.StateChoices = [ [Iteration.States.PLANNING,  'Planning']
 
 // ------------------------------------------------------------------- Story ---
 
-var Story = Model.extend({
+var Story = Sacrum.Model.extend({
   toString: function() {
     return this.name
   }
@@ -189,7 +191,7 @@ Story.StateChoices = [ [Story.States.SCOPED,      'Scoped']
 
 // -------------------------------------------------------------------- Task ---
 
-var Task = Model.extend({
+var Task = Sacrum.Model.extend({
   toString: function() {
     return this.name
   }
@@ -225,13 +227,13 @@ Task.StateChoices = [ [Task.States.DEFINED,     'Defined']
 
 // ----------------------------------------------- Model Storage / Retrieval ---
 
-var Projects = new Storage(Project)
-  , Packages = new Storage(Package)
-  , Releases = new Storage(Release)
-  , Iterations = new Storage(Iteration)
-  , Stories = new Storage(Story)
-  , Tasks = new Storage(Task)
-  , Users = new Storage(User)
+var Projects = new Sacrum.Storage(Project)
+  , Packages = new Sacrum.Storage(Package)
+  , Releases = new Sacrum.Storage(Release)
+  , Iterations = new Sacrum.Storage(Iteration)
+  , Stories = new Sacrum.Storage(Story)
+  , Tasks = new Sacrum.Storage(Task)
+  , Users = new Sacrum.Storage(User)
 
 // =================================================================== Forms ===
 
@@ -345,49 +347,49 @@ var TaskForm = forms.Form({
 
 // ------------------------------------------------------- Model Admin Views ---
 
-var UserAdminViews = new ModelAdminViews({
+var UserAdminViews = new Admin.ModelAdminViews({
   name: 'UserAdminViews'
 , namespace: 'users'
 , storage: Users
 , form: UserForm
 })
 
-var ProjectAdminViews = new ModelAdminViews({
+var ProjectAdminViews = new Admin.ModelAdminViews({
   name: 'ProjectAdminViews'
 , namespace: 'projects'
 , storage: Projects
 , form: ProjectForm
 })
 
-var PackageAdminViews = new ModelAdminViews({
+var PackageAdminViews = new Admin.ModelAdminViews({
   name: 'PackageAdminViews'
 , namespace: 'packages'
 , storage: Packages
 , form: PackageForm
 })
 
-var ReleaseAdminViews = new ModelAdminViews({
+var ReleaseAdminViews = new Admin.ModelAdminViews({
   name: 'ReleaseAdminViews'
 , namespace: 'releases'
 , storage: Releases
 , form: ReleaseForm
 })
 
-var IterationAdminViews = new ModelAdminViews({
+var IterationAdminViews = new Admin.ModelAdminViews({
   name: 'IterationAdminViews'
 , namespace: 'iterations'
 , storage: Iterations
 , form: IterationForm
 })
 
-var StoryAdminViews = new ModelAdminViews({
+var StoryAdminViews = new Admin.ModelAdminViews({
   name: 'StoryAdminViews'
 , namespace: 'stories'
 , storage: Stories
 , form: StoryForm
 })
 
-var TaskAdminViews = new ModelAdminViews({
+var TaskAdminViews = new Admin.ModelAdminViews({
   name: 'TaskAdminViews'
 , namespace: 'tasks'
 , storage: Tasks
@@ -690,8 +692,8 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
 // ===================================================== Export / Initialise ===
 
 function init() {
-  AdminViews.init()
-  URLConf.patterns = [ url('admin/', AdminViews.getURLs()) ]
+  Admin.AdminViews.init()
+  URLConf.patterns = [ urlresolve.url('admin/', Admin.AdminViews.getURLs()) ]
 }
 
 var Fragile = {
@@ -726,18 +728,19 @@ var Fragile = {
 , init: init
 }
 
-if (server) {
-  module.exports = Fragile
-}
-else {
-  __global__.Fragile = Fragile
-  if (__global__.location.protocol != 'file:') {
-    __global__.onpopstate = Sacrum.handlePopURLState
-  }
-  __global__.onload = function() {
-    init()
-    resolve('/admin/').func()
-  }
-}
+module.exports = Fragile
 
-}(this, !!(typeof module != 'undefined' && module.exports))
+if (!server) {
+  if (window.location.protocol != 'file:') {
+    window.onpopstate = Sacrum.handlePopURLState
+  }
+  window.onload = function() {
+    init()
+    var path = window.location.pathname
+    // If running via the static page, always start at the index
+    if (path.indexOf('.html') == path.length - 5) {
+      path = '/admin/'
+    }
+    URLConf.resolve(path).func()
+  }
+}

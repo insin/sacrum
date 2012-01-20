@@ -42,11 +42,11 @@ Forms
   * ModelChoiceFields may need to perform an async lookup before a form can be
     displayed or validated.
 
-Templating 
+Templating
   * it's possible that async operations would need to be performed by items being
     rendered in `DOMBuilder`_ templates. To support this, we would need to be able
     to specify when this is the case and...
-    
+
     * defer displaying until callbacks are called?
     * (client) display as much as we can, with placeholders to be filled upon
       completion?
@@ -56,27 +56,37 @@ Templating
 Dependencies & Demo
 ===================
 
-Browser dependencies are bundled in the ``deps/`` directory.
+Sacrum is built using a number of dual-sided components - that is, JavaScript
+modules which are designed to run on both client and server. Browser
+dependencies which have not yet been ported to use Node.js-style modules are
+bundled in the ``deps/`` directory.
 
 Node.js dependencies are available via `npm`_. If you're cloning this repo,
-run ``npm install -d`` to install them locally in a ``node_modules``
-directory.
+run ``npm install`` to install them locally in a ``node_modules`` directory.
 
-- `DOMBuilder`_ (>= 2.1.0 alpha1) is required for templating in code with
-  template inheritance, generating DOM Elements and registering event handlers on
-  the browser and generating HTML on Node.js with hooks for event handlers to be
+- `isomorph`_ provides a dual-sided utility toolbelt.
+
+- `urlresolve`_ provides dual-sided routing/URL configuration.
+
+- `Concur`_ provides dual-sided inheritance sugar for Models and Views.
+
+- `DOMBuilder`_ provides dual-sided templating in code with template
+  inheritance, generating DOM Elements and registering event handlers on the
+  browser and generating HTML on Node.js with hooks for event handlers to be
   attached later.
 
-- `newforms`_ (>= 0.0.4 alpha1) is required for form display, user input
-  validation and type coercion. It also requires DOMBuilder for rendering across
-  environments.
+- `newforms`_ provides dual-sided form display, user input validation and type
+  coercion. It also requires DOMBuilder for rendering across environments.
 
-- `express`_ (2.*) is being used to hook the sample application up in Node.js.
+- `express`_  is being used to hook the sample application up in Node.js.
 
   Run ``node server.js`` to bring it up and open http://localhost:8000/admin/
   in a browser. Now disable JavaScript and notice how you're still able to
   navigate and use the (bits of the) app (which have been implemented so far).
 
+.. _`isomorph`: https://github.com/insin/isomorph
+.. _`urlresolve`: https://github.com/insin/urlresolve
+.. _`Concur`: https://github.com/insin/concur
 .. _`npm`: http://npmjs.org
 .. _`express`: http://expressjs.com
 
@@ -269,7 +279,7 @@ and display logic.
 
 ::
 
-   var VehicleViews = Views.extend({
+   var VehicleViews = Sacrum.Views.extend({
      name: 'VehicleViews'
 
    , init: function() {
@@ -288,7 +298,7 @@ and display logic.
 URLConf
 -------
 
-URL patterns can be configured  to map URLs to views, capturing named parameters
+URL patterns can be configuredto map URLs to views, capturing named parameters
 in the process, and to reverse-resolve a URL name and parameters to obtain
 a URL.
 
@@ -297,42 +307,15 @@ a URL.
    Application URL configuration should be set in ``URLConf.patterns``, which
    should contain a list of pattens for resolution.
 
-``patterns(context, patterns...)``
+   ``resolve(path)``
+      Resolves the given URL path, returning an object with ``func``, ``args`` and
+      ``urlName`` properties if successful, otherwise throwing a ``Resolver404``
+      error.
 
-   Creates a list of URL patterns, which can be specified using the ``url``
-   function or a list of [pattern, view, urlName].
-
-   View function names can be specified as strings to be looked up from a
-   context object (usually a ``Views`` instance), which should be passed as the
-   first argument in that case, otherwise it should be ``null`` or falsy.
-
-``url(pattern, view, urlName)``
-
-   Creates a URL pattern or roots a list of patterns to the given pattern if
-   a list of views. The URL name is used in reverse URL lookups and should be
-   unique.
-
-   Patterns:
-
-   * Should not start with a leading slash, but should end with a trailing slash
-     if being used to root other patterns, otherwise to your own taste.
-
-   * Can identify named parameters to be extracted from resolved URLS using a
-     leading ``:``, e.g.::
-
-        widgets/:id/edit/
-
-``resolve(path)``
-
-   Resolves the given URL path, returning an object with ``func``, ``args`` and
-   ``urlName`` properties if successful, otherwise throwing a ``Resolver404``
-   error.
-
-``reverse(urlName, args)``
-
-   Reverse-resolves the given named URL with the given args (if applicable),
-   returning a URL string if successful, otherwise throwing a ``NoReverseMatch``
-   error.
+   ``reverse(urlName, args)``
+      Reverse-resolves the given named URL with the given args (if applicable),
+      returning a URL string if successful, otherwise throwing a ``NoReverseMatch``
+      error.
 
 ``handleURLChange(e)``
 
@@ -351,7 +334,7 @@ a URL.
 
 ::
 
-   var VehicleViews = new Views({
+   var VehicleViews = new Sacrum.Views({
      // ...
 
    , index: function() {
@@ -364,10 +347,10 @@ a URL.
      }
 
    , getURLs: function() {
-       return patterns(this
-       , url('',      'index',   'vehicle_index')
-       , url('list/', 'list',    'vehicle_list')
-       , url(':id/',  'details', 'vehicle_details')
+       return urlresolve.patterns(this
+       , urlresolve.url('',      'index',   'vehicle_index')
+       , urlresolve.url('list/', 'list',    'vehicle_list')
+       , urlresolve.url(':id/',  'details', 'vehicle_details')
        )
      }
 

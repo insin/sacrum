@@ -1,7 +1,7 @@
 // Server-specific code for Fragile
 
 // Ensure Fragile is loaded first so the base admin template is defined
-var Sacrum = require('../sacrum')
+var Sacrum = require('../lib/sacrum')
   , Fragile = require('./fragile')
   , DOMBuilder = require('DOMBuilder')
 
@@ -16,10 +16,8 @@ $template('fragile:base'
     , LINK({rel: 'stylesheet', type: 'text/css', href: '/fragile/fragile.css'})
     , SCRIPT({src: '/deps/DOMBuilder-2.1.0alpha2.js'})
     , SCRIPT({src: '/deps/newforms-0.0.4alpha1.js'})
-    , SCRIPT({src: '/sacrum.js'})
-    , SCRIPT({src: '/admin.js'})
     // You are now entering the Meta Zone
-    , SCRIPT({src: '/fragile/fragile.js'})
+    , SCRIPT({src: '/fragile.js'})
     )
   , BODY(
       H1('Fragile')

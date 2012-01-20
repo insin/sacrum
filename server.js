@@ -1,6 +1,10 @@
 var express = require('express')
-  , Sacrum = require('./sacrum')
-  , Fragile = require('./fragile')
+
+var urlresolve = require('urlresolve')
+
+var Sacrum = require('./lib/sacrum')
+  , URLConf = Sacrum.URLConf
+  , Fragile = require('./fragile/index')
 
 Fragile.init()
 
@@ -12,7 +16,7 @@ app.use(express.static(__dirname));
 
 app.all('*', function(req, res) {
   try {
-    var match = Sacrum.resolve(req.url)
+    var match = URLConf.resolve(req.url)
     var args = match.args
     if (req.method == 'POST') {
       args.push(req.body)
@@ -30,7 +34,7 @@ app.all('*', function(req, res) {
     }
   }
   catch (e) {
-    if (e instanceof Sacrum.Resolver404) {
+    if (e instanceof urlresolve.Resolver404) {
       res.send('<h1>404 Not Found</h1>' + e.toDOM(), 404)
     }
     else {
