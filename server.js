@@ -14,7 +14,7 @@ app.use(express.logger())
 app.use(express.bodyParser())
 app.use(express.static(__dirname));
 
-app.all('*', function(req, res) {
+app.all('*', function(req, res, next) {
   try {
     var match = URLConf.resolve(req.url)
     var args = match.args
@@ -38,7 +38,7 @@ app.all('*', function(req, res) {
       res.send('<h1>404 Not Found</h1>' + e.toDOM(), 404)
     }
     else {
-      res.send('<h1>500 Server Error</h1>' + e.toDOM(), 500)
+      next(e)
     }
   }
 })
