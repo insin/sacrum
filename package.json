@@ -11,11 +11,11 @@
   , "url": "https://github.com/insin/sacrum.git"
   }
 , "dependencies": {
-    "Concur": "0.1.x"
+    "Concur": "0.2.x"
   , "DOMBuilder": "2.1.x"
   , "express": "2.5.x"
   , "isomorph": "0.1.x"
-  , "newforms": "0.1.x"
+  , "newforms": "0.2.x"
   , "urlresolve": "0.0.x"
   }
 , "devDependencies" : {

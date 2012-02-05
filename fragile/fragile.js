@@ -3,6 +3,7 @@ var server = (typeof window == 'undefined')
 var Sacrum = require('../lib/sacrum')
   , Admin = Sacrum.Admin
   , object = require('isomorph').object
+  , time = require('isomorph').time
   , urlresolve = require('urlresolve')
   , URLConf = Sacrum.URLConf
   , DOMBuilder = require('DOMBuilder')
@@ -34,7 +35,7 @@ function lineBreaks(s) {
  */
 function formatDate(d) {
   if (!d) return ''
-  return forms.util.time.strftime(d, '%b %d, %Y')
+  return time.strftime(d, '%b %d, %Y')
 }
 
 // ================================================================== Models ===
@@ -94,7 +95,7 @@ var Release = Sacrum.Model.extend({
     return formatDate(this.releaseDate)
   }
 , stateDisplay: function() {
-    return forms.util.itemsToObject(Release.StateChoices)[this.state]
+    return object.fromItems(Release.StateChoices)[this.state]
   }
 , notesDisplay: function() {
     return lineBreaks(this.notes)
@@ -130,7 +131,7 @@ var Iteration = Sacrum.Model.extend({
     return formatDate(this.endDate)
   }
 , stateDisplay: function() {
-    return forms.util.itemsToObject(Iteration.StateChoices)[this.state]
+    return object.fromItems(Iteration.StateChoices)[this.state]
   }
 , notesDisplay: function() {
     return lineBreaks(this.notes)
@@ -156,7 +157,7 @@ var Story = Sacrum.Model.extend({
     return this.name
   }
 , stateDisplay: function() {
-    return forms.util.itemsToObject(Story.StateChoices)[this.state]
+    return object.fromItems(Story.StateChoices)[this.state]
   }
 , blockedDisplay: function() {
     return (this.blocked ? 'Yes' : 'No')
@@ -197,7 +198,7 @@ var Task = Sacrum.Model.extend({
     return this.story.project
   }
 , stateDisplay: function() {
-    return forms.util.itemsToObject(Task.StateChoices)[this.state]
+    return object.fromItems(Task.StateChoices)[this.state]
   }
 , blockedDisplay: function() {
     return (this.blocked ? 'Yes' : 'No')
@@ -235,7 +236,7 @@ var Projects = new Sacrum.Storage(Project)
 
 // =================================================================== Forms ===
 
-var UserForm = forms.Form({
+var UserForm = forms.Form.extend({
   requiredCssClass: 'required'
 , errorCssClass: 'error'
 
@@ -245,21 +246,21 @@ var UserForm = forms.Form({
 , profileImage: forms.URLField({required: false})
 })
 
-var ProjectForm = forms.Form({
+var ProjectForm = forms.Form.extend({
   requiredCssClass: 'required'
 , errorCssClass: 'error'
 
 , name: forms.CharField({maxLength: 50})
 })
 
-var PackageForm = forms.Form({
+var PackageForm = forms.Form.extend({
   requiredCssClass: 'required'
 , errorCssClass: 'error'
 
 , name: forms.CharField({maxLength: 50})
 })
 
-var ReleaseForm = forms.Form({
+var ReleaseForm = forms.Form.extend({
   requiredCssClass: 'required'
 , errorCssClass: 'error'
 
@@ -282,7 +283,7 @@ var ReleaseForm = forms.Form({
   }
 })
 
-var IterationForm = forms.Form({
+var IterationForm = forms.Form.extend({
   requiredCssClass: 'required'
 , errorCssClass: 'error'
 
@@ -305,7 +306,7 @@ var IterationForm = forms.Form({
   }
 })
 
-var StoryForm = forms.Form({
+var StoryForm = forms.Form.extend({
   requiredCssClass: 'required'
 , errorCssClass: 'error'
 
@@ -324,7 +325,7 @@ var StoryForm = forms.Form({
 , notes: forms.CharField({required: false, widget: forms.Textarea})
 })
 
-var TaskForm = forms.Form({
+var TaskForm = forms.Form.extend({
   requiredCssClass: 'required'
 , errorCssClass: 'error'
 
