@@ -14,8 +14,6 @@ $template('fragile:base'
     HEAD(
       TITLE('Fragile')
     , LINK({rel: 'stylesheet', type: 'text/css', href: '/fragile/fragile.css'})
-    , SCRIPT({src: '/deps/DOMBuilder-2.1.0alpha2.js'})
-    , SCRIPT({src: '/deps/newforms-0.0.4alpha1.js'})
     // You are now entering the Meta Zone
     , SCRIPT({src: '/fragile.js'})
     )

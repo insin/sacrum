@@ -21,10 +21,11 @@ buildumb.build({
   // urlresolve
   , 'node_modules/urlresolve/lib/urlresolve.js' : 'urlresolve'
   // DOMBuilder
-  , 'node_modules/DOMBuilder/lib/dombuilder/core.js' : ['./dombuilder/core', './core']
-  , 'node_modules/DOMBuilder/lib/dombuilder/dom.js'  : './dombuilder/dom'
-  , 'node_modules/DOMBuilder/lib/dombuilder/html.js' : './dombuilder/html'
-  , 'node_modules/DOMBuilder/support/DOMBuilder.js'  : 'DOMBuilder'
+  , 'node_modules/DOMBuilder/lib/dombuilder/core.js'         : ['./dombuilder/core', './core']
+  , 'node_modules/DOMBuilder/lib/dombuilder/dom.js'          : './dombuilder/dom'
+  , 'node_modules/DOMBuilder/lib/dombuilder/html.js'         : './dombuilder/html'
+  , 'node_modules/DOMBuilder/lib/dombuilder/template.js'     : './dombuilder/template'
+  , 'node_modules/DOMBuilder/support/DOMBuilder.template.js' : 'DOMBuilder'
   // newforms
   , 'node_modules/newforms/lib/util.js'       : './util'
   , 'node_modules/newforms/lib/validators.js' : './validators'
