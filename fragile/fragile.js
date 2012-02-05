@@ -312,7 +312,7 @@ var StoryForm = forms.Form({
 , name: forms.CharField({maxLength: 255})
 , description: forms.CharField({widget: forms.Textarea, required: false})
 , owner: forms.ModelChoiceField(Users.query(), {required: false})
-, package: forms.ModelChoiceField(Packages.query(), {required: false})
+, pkg: forms.ModelChoiceField(Packages.query(), {required: false})
 , project: forms.ModelChoiceField(Projects.query())
 , parent: forms.ModelChoiceField(Stories.query(), {required: false})
 , state: forms.ChoiceField({choices: Story.StateChoices, initial: Story.States.SCOPED})
@@ -396,7 +396,7 @@ var TaskAdminViews = new Admin.ModelAdminViews({
 
 // =============================================================== Templates ===
 
-!function() { with (DOMBuilder.template) {
+;(function() { with (DOMBuilder.template) {
 
 // ------------------------------------------------ ModelAdminView Templates ---
 
@@ -586,7 +586,7 @@ $template({name: 'stories:admin:detail', extend: 'admin:detail'}
         [ ['ID'         , 'id'                ]
         , ['Name'       , 'name'              ]
         , ['Description', 'descriptionDisplay']
-        , ['Owner'      , 'owner'             , 'Package', 'package']
+        , ['Owner'      , 'owner'             , 'Package', 'pkg']
         , ['Project'    , 'project'           ]
         ]
       )
@@ -667,7 +667,7 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
   )
 )
 
-}}()
+}})()
 
 // ============================================================= Sample Data ===
 
@@ -683,7 +683,7 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
     , r3 = Releases.add(new Release({name: 'Release 1', theme: 'Months of firefighting.', state: Release.States.PLANNING, startDate: new Date(2011, 3, 16), releaseDate: new Date(2012, 6, 1), project: p2, resources: 76.5, estimate: 54.0}))
     , i1 = Iterations.add(new Iteration({name: 'Sprint 1', theme: 'Getting started.', state: Iteration.States.COMMITTED, startDate: new Date(2010, 5, 1), endDate: new Date(2010, 6, 1), project: p1, resources: 76.5, estimate: 54.0}))
     , i2 = Iterations.add(new Iteration({name: 'Sprint 2', theme: 'Big, risky stories.', state: Iteration.States.PLANNING, startDate: new Date(2010, 6, 1), endDate: new Date(2010, 7, 1), project: p1, resources: 76.5, estimate: 54.0}))
-    , s1 = Stories.add(new Story({name: 'Story 1', project: p1, parent: null, state: Story.States.IN_PROGRESS, owner: u1, package: pa1, release: r1, iteration: i1, planEstimate: 20.0, rank: 1.0}))
+    , s1 = Stories.add(new Story({name: 'Story 1', project: p1, parent: null, state: Story.States.IN_PROGRESS, owner: u1, pkg: pa1, release: r1, iteration: i1, planEstimate: 20.0, rank: 1.0}))
     , t1 = Tasks.add(new Task({name: 'Task 1', state: Task.States.IN_PROGRESS, estimate: 15.0, actuals: 5.0, todo: 10.0, story: s1, owner: u1, rank: 2.0}))
 }()
 
