@@ -1,26 +1,25 @@
 {
-  "name": "Sacrum",
-  "description": "Another single-page app helper, also usable on the server-side",
-  "version": "0.0.1alpha3",
-  "author": "Jonathan Buchanan <jonathan.buchanan@gmail.com> (https://github.com/insin)",
-  "homepage": "https://github.com/insin/sacrum",
-  "tags": ["app", "client", "server", "dual-sided"],
-  "main": "index",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/insin/sacrum.git"
-  },
-  "dependencies": {
-    "Concur": "0.1.x",
-    "DOMBuilder": "2.1.x",
-    "express": "2.5.x",
-    "isomorph": "0.1.x",
-    "newforms": "0.0.x",
-    "urlresolve": "0.0.x"
-  },
-  "devDependencies" : {
+  "name": "Sacrum"
+, "description": "Another single-page app helper, also usable on the server-side"
+, "version": "0.0.1"
+, "author": "Jonathan Buchanan <jonathan.buchanan@gmail.com> (https://github.com/insin)"
+, "homepage": "https://github.com/insin/sacrum"
+, "tags": ["dualsided"]
+, "main": "index"
+, "repository": {
+    "type": "git"
+  , "url": "https://github.com/insin/sacrum.git"
+  }
+, "dependencies": {
+    "Concur": "0.1.x"
+  , "DOMBuilder": "2.1.x"
+  , "express": "2.5.x"
+  , "isomorph": "0.1.x"
+  , "newforms": "0.1.x"
+  , "urlresolve": "0.0.x"
+  }
+, "devDependencies" : {
     "qunit": "0.2.x"
   , "buildumb": "0.1.x"
   }
-
 }

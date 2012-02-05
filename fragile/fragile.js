@@ -5,10 +5,8 @@ var Sacrum = require('../lib/sacrum')
   , object = require('isomorph').object
   , urlresolve = require('urlresolve')
   , URLConf = Sacrum.URLConf
-
-// TODO Port these to build with buildumb
-var DOMBuilder = (server ? require('DOMBuilder') : window.DOMBuilder)
-  , forms = (server ? require('newforms') : window.forms)
+  , DOMBuilder = require('DOMBuilder')
+  , forms = require('newforms')
 
 // =============================================================== Utilities ===
 
