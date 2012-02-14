@@ -1,6 +1,6 @@
 var server = (typeof window == 'undefined')
 
-var Sacrum = require('../lib/sacrum')
+var Sacrum = require('../../lib/sacrum')
   , Admin = Sacrum.Admin
   , object = require('isomorph').object
   , time = require('isomorph').time
@@ -397,7 +397,7 @@ var TaskAdminViews = new Admin.ModelAdminViews({
 
 // =============================================================== Templates ===
 
-;(function() { with (DOMBuilder.template) {
+void function() { with (DOMBuilder.template) {
 
 // ------------------------------------------------ ModelAdminView Templates ---
 
@@ -668,11 +668,11 @@ $template({name: 'tasks:admin:detail', extend: 'admin:detail'}
   )
 )
 
-}})()
+}}()
 
 // ============================================================= Sample Data ===
 
-!function() {
+void function() {
   var u1 = Users.add(new User({name: 'User 1', email: 'a@a.com', displayName: 'User 1', profileImage: 'http://jonathan.buchanan153.users.btopenworld.com/adventurer.png'}))
     , u2 = Users.add(new User({name: 'User 2', email: 'b@b.com', displayName: 'User 2', profileImage: 'http://jonathan.buchanan153.users.btopenworld.com/kiwi.png'}))
     , p1 = Projects.add(new Project({name: 'Project 1'}))

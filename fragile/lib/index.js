@@ -1,11 +1,11 @@
 // Server-specific code for Fragile
 
 // Ensure Fragile is loaded first so the base admin template is defined
-var Sacrum = require('../lib/sacrum')
+var Sacrum = require('../../lib/sacrum')
   , Fragile = require('./fragile')
   , DOMBuilder = require('DOMBuilder')
 
-!function() { with (DOMBuilder.template) {
+void function() { with (DOMBuilder.template) {
 
 // Define a full-page base template
 $template('fragile:base'
@@ -13,7 +13,7 @@ $template('fragile:base'
 , HTML(
     HEAD(
       TITLE('Fragile')
-    , LINK({rel: 'stylesheet', type: 'text/css', href: '/fragile/fragile.css'})
+    , LINK({rel: 'stylesheet', type: 'text/css', href: '/fragile.css'})
     // You are now entering the Meta Zone
     , SCRIPT({src: '/fragile.js'})
     )
@@ -36,7 +36,7 @@ $template('fragile:base'
     , DIV({id: 'forkme'}
       , A({href: 'https://github.com/insin/sacrum/'}
         , IMG({ style: 'position: absolute; top: 0; right: 0; border: 0;'
-              , src: '/fragile/forkme.png'
+              , src: '/forkme.png'
               , alt: 'Fork me on GitHub'
               })
         )

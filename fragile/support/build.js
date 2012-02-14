@@ -3,7 +3,7 @@ var path = require('path')
 var buildumb = require('buildumb')
 
 buildumb.build({
-  root: path.normalize(path.join(__dirname, '..'))
+  root: path.normalize(path.join(__dirname, '../../'))
 , modules: {
   // punycode
     'node_modules/newforms/node_modules/punycode/punycode.js': 'punycode'
@@ -41,11 +41,13 @@ buildumb.build({
   // sacrum
   , 'lib/sacrum/sacrum.js' : ['./sacrum/sacrum', './sacrum']
   , 'lib/sacrum/admin.js'  : './sacrum/admin'
-  , 'lib/sacrum.js'        : 'sacrum'
+  , 'lib/sacrum.js'        : ['sacrum', '../../lib/sacrum']
+  // fragile
+  , 'fragile/lib/fragile.js' : 'fragile'
   }
 , exports: {
-    'Sacrum': 'sacrum'
+    'Fragile': 'fragile'
   }
-, output: 'sacrum.js'
-, compress: 'sacrum.min.js'
+, output: 'fragile/static/fragile.js'
+, compress: 'fragile/static/fragile.min.js'
 })

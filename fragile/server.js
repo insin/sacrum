@@ -2,9 +2,9 @@ var express = require('express')
 
 var urlresolve = require('urlresolve')
 
-var Sacrum = require('./lib/sacrum')
+var Sacrum = require('../lib/sacrum')
   , URLConf = Sacrum.URLConf
-  , Fragile = require('./fragile/index')
+  , Fragile = require('./lib/')
 
 Fragile.init()
 
@@ -12,7 +12,7 @@ var app = express.createServer()
 
 app.use(express.logger())
 app.use(express.bodyParser())
-app.use(express.static(__dirname));
+app.use(express.static(__dirname + '/static'));
 
 app.all('*', function(req, res, next) {
   try {

@@ -1,11 +1,11 @@
 QUnit.module('Models')
 
-!function() {
+void function() {
 
 var Model = Sacrum.Model
   , ModelOptions = Sacrum.ModelOptions
 
-test('Model.extend', function() {
+QUnit.test('Model.extend', function() {
   // Minimal information for extending a Model
   var Test = Model.extend({
     Meta: {
