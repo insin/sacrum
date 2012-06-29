@@ -8,16 +8,16 @@ buildumb.build({
   // punycode
     'node_modules/newforms/node_modules/punycode/punycode.js': 'punycode'
   // isomorph
-  , 'node_modules/isomorph/lib/is.js'           : ['./is', 'isomorph/lib/is']
-  , 'node_modules/isomorph/lib/array.js'        : ['./array', 'isomorph/lib/array']
-  , 'node_modules/isomorph/lib/format.js'       : ['./format', 'isomorph/lib/format']
-  , 'node_modules/isomorph/lib/func.js'         : ['./func', 'isomorph/lib/func']
-  , 'node_modules/isomorph/lib/object.js'       : ['./object', 'isomorph/lib/object']
-  , 'node_modules/isomorph/lib/re.js'           : ['./re', 'isomorph/lib/re']
-  , 'node_modules/isomorph/lib/querystring.js'  : ['./querystring', 'isomorph/lib/querystring']
-  , 'node_modules/isomorph/lib/copy.js'         : ['./copy', 'isomorph/lib/copy']
-  , 'node_modules/isomorph/lib/time.js'         : ['./time', 'isomorph/lib/time']
-  , 'node_modules/isomorph/lib/isomorph.js'     : 'isomorph'
+  , 'node_modules/isomorph/is.js'          : ['./is', 'isomorph/is']
+  , 'node_modules/isomorph/array.js'       : ['./array', 'isomorph/array']
+  , 'node_modules/isomorph/format.js'      : ['./format', 'isomorph/format']
+  , 'node_modules/isomorph/func.js'        : ['./func', 'isomorph/func']
+  , 'node_modules/isomorph/object.js'      : ['./object', 'isomorph/object']
+  , 'node_modules/isomorph/re.js'          : ['./re', 'isomorph/re']
+  , 'node_modules/isomorph/querystring.js' : ['./querystring', 'isomorph/querystring']
+  , 'node_modules/isomorph/copy.js'        : ['./copy', 'isomorph/copy']
+  , 'node_modules/isomorph/time.js'        : ['./time', 'isomorph/time']
+  , 'node_modules/isomorph/index.js'       : 'isomorph'
   // concur
   , 'node_modules/Concur/lib/concur.js'         : 'Concur'
   // urlresolve
