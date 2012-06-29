@@ -5,10 +5,8 @@ var buildumb = require('buildumb')
 buildumb.build({
   root: path.normalize(path.join(__dirname, '..'))
 , modules: {
-  // punycode
-    'node_modules/newforms/node_modules/punycode/punycode.js': 'punycode'
   // isomorph
-  , 'node_modules/isomorph/is.js'          : ['./is', 'isomorph/is']
+    'node_modules/isomorph/is.js'          : ['./is', 'isomorph/is']
   , 'node_modules/isomorph/array.js'       : ['./array', 'isomorph/array']
   , 'node_modules/isomorph/format.js'      : ['./format', 'isomorph/format']
   , 'node_modules/isomorph/func.js'        : ['./func', 'isomorph/func']
@@ -19,7 +17,7 @@ buildumb.build({
   , 'node_modules/isomorph/time.js'        : ['./time', 'isomorph/time']
   , 'node_modules/isomorph/index.js'       : 'isomorph'
   // concur
-  , 'node_modules/Concur/lib/concur.js'         : 'Concur'
+  , 'node_modules/Concur/lib/concur.js' : 'Concur'
   // urlresolve
   , 'node_modules/urlresolve/lib/urlresolve.js' : 'urlresolve'
   // DOMBuilder
@@ -28,10 +26,13 @@ buildumb.build({
   , 'node_modules/DOMBuilder/lib/dombuilder/html.js'         : './dombuilder/html'
   , 'node_modules/DOMBuilder/lib/dombuilder/template.js'     : './dombuilder/template'
   , 'node_modules/DOMBuilder/support/DOMBuilder.template.js' : 'DOMBuilder'
+  // validators + deps
+  , 'node_modules/newforms/node_modules/validators/node_modules/punycode/punycode.js' : 'punycode'
+  , 'node_modules/newforms/node_modules/validators/lib/errors.js'                     : './errors'
+  , 'node_modules/newforms/node_modules/validators/lib/ipv6.js'                       : './ipv6'
+  , 'node_modules/newforms/node_modules/validators/lib/validators.js'                 : ['./validators', 'validators']
   // newforms
   , 'node_modules/newforms/lib/util.js'       : './util'
-  , 'node_modules/newforms/lib/ipv6.js'       : './ipv6'
-  , 'node_modules/newforms/lib/validators.js' : './validators'
   , 'node_modules/newforms/lib/widgets.js'    : './widgets'
   , 'node_modules/newforms/lib/fields.js'     : './fields'
   , 'node_modules/newforms/lib/forms.js'      : './forms'

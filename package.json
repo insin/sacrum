@@ -15,7 +15,7 @@
   , "DOMBuilder": "2.1.x"
   , "express": "2.5.x"
   , "isomorph": "0.2.x"
-  , "newforms": "0.3.x"
+  , "newforms": "0.4.x"
   , "urlresolve": "0.0.x"
   }
 , "devDependencies" : {
