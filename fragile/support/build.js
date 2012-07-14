@@ -15,6 +15,7 @@ buildumb.build({
   , 'node_modules/isomorph/querystring.js' : ['./querystring', 'isomorph/querystring']
   , 'node_modules/isomorph/copy.js'        : ['./copy', 'isomorph/copy']
   , 'node_modules/isomorph/time.js'        : ['./time', 'isomorph/time']
+  , 'node_modules/isomorph/url.js'         : ['./url', 'isomorph/url']
   , 'node_modules/isomorph/index.js'       : 'isomorph'
   // concur
   , 'node_modules/Concur/lib/concur.js' : 'Concur'
